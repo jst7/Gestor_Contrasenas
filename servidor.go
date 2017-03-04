@@ -8,29 +8,26 @@ import (
 	"net"
 )
 
+/**
+Todos las "_" se pueden sustituir por "err" y añadir el codigo:
+	if err != nil {
+		log.Println(err)
+		return
+	}
+**/
 func main() {
 	log.SetFlags(log.Lshortfile)
 
-	cer, err := tls.LoadX509KeyPair("server.crt", "server.key")
-	if err != nil {
-		log.Println(err)
-		return
-	}
+	cer, _ := tls.LoadX509KeyPair("server.crt", "server.key")
 
 	config := &tls.Config{Certificates: []tls.Certificate{cer}}
-	ln, err := tls.Listen("tcp", ":443", config)
-	if err != nil {
-		log.Println(err)
-		return
-	}
+	ln, _ := tls.Listen("tcp", ":443", config)
+
 	defer ln.Close()
 
 	for {
-		conn, err := ln.Accept()
-		if err != nil {
-			log.Println(err)
-			continue
-		}
+		conn, _ := ln.Accept()
+
 		go handleConnection(conn)
 	}
 }
@@ -39,21 +36,16 @@ func handleConnection(conn net.Conn) {
 	defer conn.Close()
 	r := bufio.NewReader(conn)
 	for {
-		msg, err := r.ReadString('\n')
-		if err != nil {
-			log.Println(err)
-			return
-		}
+		msg, _ := r.ReadString('\n')
+
 		println("Mensaje recibido:")
 		println(msg)
 		println("mensaje a responder(enviar):")
 		var linea string
 		fmt.Scanf("%s", &linea)
 
-		n, err := conn.Write([]byte(linea + "\n"))
-		if err != nil {
-			log.Println(n, err)
-			return
-		}
+		conn.Write([]byte(linea + "\n"))
+		//n, _err := conn.Write([]byte(linea + "\n"))
+
 	}
 }
