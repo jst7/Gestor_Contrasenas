@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"log"
 )
@@ -14,7 +15,8 @@ Todos las "_" se pueden sustituir por "err" y añadir el codigo:
 	}
 **/
 func main() {
-	comunicacion()
+	//comunicacion()
+	createJSON()
 	/*
 		for i := 1; i < 3; i++ {
 			i = menu()
@@ -67,19 +69,32 @@ func comunicacion() {
 }
 
 //Estructura JSON
-func createJson() string {
+func createJSON() string {
 
-	return ""
+	m := cuenta{"Jorge", "1234", "Facebook"}
+	n := cuenta{"Jorge", "1234", "Facebook"}
+
+	var contes []cuenta
+
+	contes = append(contes, m)
+	contes = append(contes, n)
+
+	user := usuario{"jorge segovia", "el mejor del mundo", contes}
+
+	resultado, _ := json.Marshal(user)
+	fmt.Printf("%s\n", resultado)
+
+	return string(resultado)
 }
 
-type Usuario struct {
-	Name     string
-	servidor string
-	cuentas  []Cuenta //Para almacenar mas de una cuenta
+type usuario struct {
+	Name    string   `json:"nombre"`
+	Datos   string   `json:"datos"`
+	Cuentas []cuenta `json:"cuentas"` //Para almacenar mas de una cuenta
 }
 
-type Cuenta struct {
-	usuario    string
-	contraseña string
-	servicio   string
+type cuenta struct {
+	Usuario    string `json:"usuario"`
+	Contraseña string `json:"contraseña"`
+	Servicio   string `json:"servicio"`
 }
