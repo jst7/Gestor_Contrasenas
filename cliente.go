@@ -69,7 +69,7 @@ func comunicacion() {
 }
 
 //Estructura JSON
-func createJSON() string {
+func createJSON() string { //Crear el json
 
 	m := cuenta{"Jorge", "1234", "Facebook"}
 	n := cuenta{"Jorge", "1234", "Facebook"}
