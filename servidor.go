@@ -1,20 +1,59 @@
 package main
 
 import (
+	"bufio"
+	"crypto/tls"
 	"fmt"
 	"log"
-	"net/http"
+	"net"
 )
 
-func saludoInicio(w http.ResponseWriter, r *http.Request) {
+func main() {
+	log.SetFlags(log.Lshortfile)
 
-	fmt.Fprintf(w, "<h1> Servidor arrancado 9797 </h1>")
+	cer, err := tls.LoadX509KeyPair("server.crt", "server.key")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	config := &tls.Config{Certificates: []tls.Certificate{cer}}
+	ln, err := tls.Listen("tcp", ":443", config)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer ln.Close()
+
+	for {
+		conn, err := ln.Accept()
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		go handleConnection(conn)
+	}
 }
 
-func main() { //https://localhost/
-	http.HandleFunc("/", saludoInicio)                                     // define la ruta
-	err := http.ListenAndServeTLS(":443", "server.crt", "server.key", nil) //  establece el puerto de escucha
-	if err != nil {
-		log.Fatal("Error: ", err)
+func handleConnection(conn net.Conn) {
+	defer conn.Close()
+	r := bufio.NewReader(conn)
+	for {
+		msg, err := r.ReadString('\n')
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		println("Mensaje recibido:")
+		println(msg)
+		println("mensaje a responder(enviar):")
+		var linea string
+		fmt.Scanf("%s", &linea)
+
+		n, err := conn.Write([]byte(linea + "\n"))
+		if err != nil {
+			log.Println(n, err)
+			return
+		}
 	}
 }
