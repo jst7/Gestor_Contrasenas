@@ -15,31 +15,73 @@ Todos las "_" se pueden sustituir por "err" y añadir el codigo:
 	}
 **/
 func main() {
-	//comunicacion()
-	createJSON()
-	/*
-		for i := 1; i < 3; i++ {
-			i = menu()
 
-			if i == 1 {
+	var op string
+	op = "0"
+	for i := 1; op != "3"; i++ {
+		op = menu()
+		if i == 1 {
+			crearUsuario()
+		} else if i == 2 {
+			comunicacion()
+		} else {
 
-			} else if i == 2 {
-				comunicacion()
-			} else {
-
-			}
-		}*/
+		}
+	}
 }
 
-func menu() int {
+func menu() string {
 	println("1. Crear cuenta nueva")
 	println("2. Recuperar datos")
 	println("3. Salir")
 
-	var op int
+	var op string
 	fmt.Scan(&op)
 
 	return op
+}
+
+func crearUsuario() {
+	//Datos de usuario
+	var nombre string
+	var datos string
+	var contes []cuenta
+
+	//Datos de cuenta
+	var usuarioNombre string
+	var contraseña string
+	var servicio string
+
+	//Booleano de añadir cuenta
+	var crear bool
+
+	//Datos de Usuario
+	println("Nombre del usuario")
+	fmt.Scan(&nombre)
+	println("Datos adicionales")
+	fmt.Scan(&datos)
+
+	//Añadir primera cuenta
+	println("¿Deseas añadir una cuenta?")
+	fmt.Scan(&crear)
+
+	if crear {
+		for crear != false {
+			println("Usuario:")
+			fmt.Scan(&usuarioNombre)
+			println("Contraseña:")
+			fmt.Scan(&contraseña)
+			println("Servicio:")
+			fmt.Scan(&servicio)
+			n := cuenta{usuarioNombre, contraseña, servicio}
+			contes = append(contes, n)
+			println("¿Deseas añadir otra cuenta?")
+			fmt.Scan(&crear)
+		}
+	}
+
+	user := usuario{nombre, datos, contes}
+	usuarioToJSON(user)
 }
 
 func comunicacion() {
@@ -68,23 +110,42 @@ func comunicacion() {
 	println(string(buf[:n]))
 }
 
-//Estructura JSON
-func createJSON() string { //Crear el json
-
-	m := cuenta{"Jorge", "1234", "Facebook"}
-	n := cuenta{"Jorge", "1234", "Facebook"}
-
-	var contes []cuenta
-
-	contes = append(contes, m)
-	contes = append(contes, n)
-
-	user := usuario{"jorge segovia", "el mejor del mundo", contes}
+func usuarioToJSON(user usuario) []byte { //Crear el json
 
 	resultado, _ := json.Marshal(user)
 	fmt.Printf("%s\n", resultado)
 
-	return string(resultado)
+	return resultado
+}
+
+func jSONtoUsuario(user []byte) usuario { //Crear el json
+
+	var usuarioDescifrado usuario
+	json.Unmarshal(user, &usuarioDescifrado)
+
+	return usuarioDescifrado
+}
+
+func añadirCuentaAUsuario(user usuario) usuario {
+
+	//Datos de cuenta
+	var usuarioNombre string
+	var contraseña string
+	var servicio string
+	var contes []cuenta
+
+	println("Usuario:")
+	fmt.Scan(&usuarioNombre)
+	println("Contraseña:")
+	fmt.Scan(&contraseña)
+	println("Servicio:")
+	fmt.Scan(&servicio)
+	n := cuenta{usuarioNombre, contraseña, servicio}
+	contes = append(user.Cuentas, n)
+
+	UsuarioModificado := usuario{user.Name, user.Datos, user.Cuentas}
+
+	return UsuarioModificado
 }
 
 type usuario struct {
