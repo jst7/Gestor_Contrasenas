@@ -16,13 +16,13 @@ Todos las "_" se pueden sustituir por "err" y añadir el codigo:
 **/
 func main() {
 
-	var op string
-	op = "0"
-	for i := 1; op != "3"; i++ {
+	var op int
+	op = 0
+	for i := 1; op != 3; i++ {
 		op = menu()
-		if i == 1 {
+		if op == 1 {
 			crearUsuario()
-		} else if i == 2 {
+		} else if op == 2 {
 			comunicacion()
 		} else {
 
@@ -30,12 +30,12 @@ func main() {
 	}
 }
 
-func menu() string {
+func menu() int {
 	println("1. Crear cuenta nueva")
 	println("2. Recuperar datos")
 	println("3. Salir")
 
-	var op string
+	var op int
 	fmt.Scan(&op)
 
 	return op
@@ -53,7 +53,7 @@ func crearUsuario() {
 	var servicio string
 
 	//Booleano de añadir cuenta
-	var crear bool
+	var crear string
 
 	//Datos de Usuario
 	println("Nombre del usuario")
@@ -65,8 +65,8 @@ func crearUsuario() {
 	println("¿Deseas añadir una cuenta?")
 	fmt.Scan(&crear)
 
-	if crear {
-		for crear != false {
+	if crear == "si" {
+		for crear != "no" {
 			println("Usuario:")
 			fmt.Scan(&usuarioNombre)
 			println("Contraseña:")
@@ -143,7 +143,7 @@ func añadirCuentaAUsuario(user usuario) usuario {
 	n := cuenta{usuarioNombre, contraseña, servicio}
 	contes = append(user.Cuentas, n)
 
-	UsuarioModificado := usuario{user.Name, user.Datos, user.Cuentas}
+	UsuarioModificado := usuario{user.Name, user.Datos, contes}
 
 	return UsuarioModificado
 }
