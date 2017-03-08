@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 )
 
 /**
@@ -40,6 +41,7 @@ func handleConnection(conn net.Conn) {
 
 		println("Mensaje recibido:")
 		println(msg)
+		exribirArchivoClientes("prueba.txt", msg)
 		println("mensaje a responder(enviar):")
 		var linea string
 		fmt.Scanf("%s\n", &linea)
@@ -49,17 +51,27 @@ func handleConnection(conn net.Conn) {
 
 	}
 
-	type usuario struct {
-		Cuentas []cuenta `json:"cuentas"`
-	}
-
-	type cuenta struct {
-		Clave string `json:"clave"`
-		ID    string `json:"id"`
-	}
-
 }
 
-func exribirArchivo(file) {
+type usuario struct {
+	Cuentas []cuenta `json:"cuentas"`
+}
 
+type cuenta struct {
+	Clave string `json:"clave"`
+	ID    string `json:"id"`
+}
+
+func exribirArchivoClientes(file string, data string) bool {
+	var escrito = false
+	if file != "" {
+		f, err := os.Open(file)
+		if err != nil {
+			log.Fatal(err)
+		} else {
+			f.WriteString(data)
+		}
+	}
+
+	return escrito
 }
