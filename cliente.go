@@ -36,7 +36,7 @@ func menu() int {
 	println("3. Salir")
 
 	var op int
-	fmt.Scan(&op)
+	fmt.Scanf("%d\n", &op)
 
 	return op
 }
@@ -57,26 +57,26 @@ func crearUsuario() {
 
 	//Datos de Usuario
 	println("Nombre del usuario")
-	fmt.Scan(&nombre)
+	fmt.Scanf("%s\n", &nombre)
 	println("Datos adicionales")
-	fmt.Scan(&datos)
+	fmt.Scanf("%s\n", &datos)
 
 	//Añadir primera cuenta
 	println("¿Deseas añadir una cuenta?")
-	fmt.Scan(&crear)
+	fmt.Scanf("%s\n", &crear)
 
 	if crear == "si" {
 		for crear != "no" {
 			println("Usuario:")
-			fmt.Scan(&usuarioNombre)
+			fmt.Scanf("%s\n", &usuarioNombre)
 			println("Contraseña:")
-			fmt.Scan(&contraseña)
+			fmt.Scanf("%s\n", &contraseña)
 			println("Servicio:")
-			fmt.Scan(&servicio)
+			fmt.Scanf("%s\n", &servicio)
 			n := cuenta{usuarioNombre, contraseña, servicio}
 			contes = append(contes, n)
 			println("¿Deseas añadir otra cuenta?")
-			fmt.Scan(&crear)
+			fmt.Scanf("%s\n", &crear)
 		}
 	}
 
@@ -99,7 +99,7 @@ func comunicacion() {
 	//Mensaje a enviar
 	println("Mensaje a enviar:")
 	var linea string
-	fmt.Scanf("%s", &linea)
+	fmt.Scanf("%s\n", &linea)
 	n, _ := conn.Write([]byte(linea + "\n"))
 
 	//Respuesta del servidor
@@ -135,11 +135,11 @@ func añadirCuentaAUsuario(user usuario) usuario {
 	var contes []cuenta
 
 	println("Usuario:")
-	fmt.Scan(&usuarioNombre)
+	fmt.Scanf("%s\n", &usuarioNombre)
 	println("Contraseña:")
-	fmt.Scan(&contraseña)
+	fmt.Scanf("%s\n", &contraseña)
 	println("Servicio:")
-	fmt.Scan(&servicio)
+	fmt.Scanf("%s\n", &servicio)
 	n := cuenta{usuarioNombre, contraseña, servicio}
 	contes = append(user.Cuentas, n)
 
