@@ -23,11 +23,22 @@ func main() {
 		if op == 1 {
 			crearUsuario()
 		} else if op == 2 {
-			comunicacion()
+			if pedirclave() {
+				menuComunicacion()
+			}
 		} else {
 
 		}
 	}
+}
+
+func menuComunicacion() {
+
+}
+
+func pedirclave() bool {
+
+	return false
 }
 
 func menu() int {
