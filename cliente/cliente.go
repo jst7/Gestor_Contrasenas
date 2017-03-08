@@ -169,6 +169,17 @@ func añadirCuentaAUsuario(user usuario) usuario {
 	return UsuarioModificado
 }
 
+//metodo que muestra los datos formateados de un usuario
+func leerUsuario(user usuario) {
+
+	println(user.Name)
+
+	for i := 0; i < len(user.Cuentas); i++ {
+		println("Servicio: " + user.Cuentas[i].Servicio + " Usuario: " + user.Cuentas[i].Usuario + "Contraseña: " + user.Cuentas[i].Contraseña)
+	}
+
+}
+
 type usuario struct {
 	Name    string   `json:"nombre"`
 	Datos   string   `json:"datos"`
