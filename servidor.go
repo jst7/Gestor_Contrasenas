@@ -49,3 +49,7 @@ func handleConnection(conn net.Conn) {
 
 	}
 }
+
+func exribirArchivo(file) {
+
+}
