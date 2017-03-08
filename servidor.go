@@ -42,12 +42,22 @@ func handleConnection(conn net.Conn) {
 		println(msg)
 		println("mensaje a responder(enviar):")
 		var linea string
-		fmt.Scanf("%s", &linea)
+		fmt.Scanf("%s\n", &linea)
 
 		conn.Write([]byte(linea + "\n"))
 		//n, _err := conn.Write([]byte(linea + "\n"))
 
 	}
+
+	type usuario struct {
+		Cuentas []cuenta `json:"cuentas"`
+	}
+
+	type cuenta struct {
+		Clave string `json:"clave"`
+		ID    string `json:"id"`
+	}
+
 }
 
 func exribirArchivo(file) {
