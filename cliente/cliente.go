@@ -134,7 +134,7 @@ func comunicacion() {
 func usuarioToJSON(user usuario) []byte { //Crear el json
 
 	resultado, _ := json.Marshal(user)
-	fmt.Printf("%s\n", resultado)
+	//fmt.Printf("%s\n", resultado)
 
 	return resultado
 }
@@ -175,8 +175,12 @@ func leerUsuario(user usuario) {
 	println(user.Name)
 
 	for i := 0; i < len(user.Cuentas); i++ {
-		println("Servicio: " + user.Cuentas[i].Servicio + " Usuario: " + user.Cuentas[i].Usuario + "Contraseña: " + user.Cuentas[i].Contraseña)
+		println("---------")
+		println("Servicio: " + user.Cuentas[i].Servicio)
+		println("Usuario: " + user.Cuentas[i].Usuario)
+		println("Contraseña: " + user.Cuentas[i].Contraseña)
 	}
+	println()
 
 }
 
