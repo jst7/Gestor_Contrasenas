@@ -18,24 +18,43 @@ openssl ecparam -genkey -name secp384r1 -out server.key
 ``openssl req -new -x509 -sha256 -key server.key -out server.crt -days 3650``
 
 
+
 ```GO
-package main
-
-import (
-    "net/http"
-    "log"
-)
-
-func HelloServer(w http.ResponseWriter, req *http.Request) {
-    w.Header().Set("Content-Type", "text/plain")
-    w.Write([]byte("This is an example server.\n"))
-}
-
 func main() {
-    http.HandleFunc("/hello", HelloServer)
-    err := http.ListenAndServeTLS(":443", "server.crt", "server.key", nil)
-    if err != nil {
-        log.Fatal("ListenAndServe: ", err)
-    }
+	log.SetFlags(log.Lshortfile)
+
+	cer, _ := tls.LoadX509KeyPair("server.crt", "server.key")
+
+	config := &tls.Config{Certificates: []tls.Certificate{cer}}
+	ln, _ := tls.Listen("tcp", ":443", config)
+
+	defer ln.Close()
+
+	for {
+		conn, _ := ln.Accept()
+
+		go handleConnection(conn)
+	}
 }
+
+//conexion entre el cliente y el servidor
+func handleConnection(conn net.Conn) {
+	defer conn.Close()
+	r := bufio.NewReader(conn)
+	for {
+		msg, _ := r.ReadString('\n')
+
+		println("Mensaje recibido:")
+		println(msg)
+		println("mensaje a responder(enviar):")
+		var linea string
+		fmt.Scanf("%s\n", &linea)
+
+		conn.Write([]byte(linea + "\n"))
+		//n, _err := conn.Write([]byte(linea + "\n"))
+
+	}
+
+}
+
 ```

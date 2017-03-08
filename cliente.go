@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 )
 
@@ -23,11 +24,31 @@ func main() {
 		if op == 1 {
 			crearUsuario()
 		} else if op == 2 {
-			comunicacion()
+			if pedirclave() {
+				menuComunicacion()
+			}
 		} else {
 
 		}
 	}
+}
+
+func menuComunicacion() {
+
+}
+
+func pedirclave() bool {
+	var archivo string
+	println("Introduce tu archivo:")
+	fmt.Scanf("%s\n", archivo)
+
+	dat, err := ioutil.ReadFile("/" + archivo)
+	if err != nil {
+		log.Println(err)
+	}
+	fmt.Print(string(dat))
+
+	return false
 }
 
 func menu() int {
