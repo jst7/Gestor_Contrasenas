@@ -69,7 +69,15 @@ func exribirArchivoClientes(file string, data string) bool {
 		if err != nil {
 			log.Fatal(err)
 		} else {
-			f.WriteString(data)
+			_, error := f.WriteString(data)
+			if error != nil {
+				log.Fatal(err)
+			}
+
+			escrito = true
+
+			f.Sync()
+
 		}
 	}
 
