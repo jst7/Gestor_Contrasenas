@@ -136,7 +136,7 @@ func comunicacion(enviar string) {
 func usuarioToJSON(user usuario) []byte { //Crear el json
 
 	resultado, _ := json.Marshal(user)
-	//fmt.Printf("%s\n", resultado)
+	fmt.Printf("%s\n", resultado)
 
 	return resultado
 }
@@ -169,21 +169,6 @@ func añadirCuentaAUsuario(user usuario) usuario {
 	UsuarioModificado := usuario{user.Name, user.Datos, contes}
 
 	return UsuarioModificado
-}
-
-//metodo que muestra los datos formateados de un usuario
-func leerUsuario(user usuario) {
-
-	println(user.Name)
-
-	for i := 0; i < len(user.Cuentas); i++ {
-		println("---------")
-		println("Servicio: " + user.Cuentas[i].Servicio)
-		println("Usuario: " + user.Cuentas[i].Usuario)
-		println("Contraseña: " + user.Cuentas[i].Contraseña)
-	}
-	println()
-
 }
 
 type usuario struct {
