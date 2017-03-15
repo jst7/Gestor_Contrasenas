@@ -38,6 +38,7 @@ func handleConnection(conn net.Conn) {
 	defer conn.Close()
 	r := bufio.NewReader(conn)
 
+	var linea = "incorrecto"
 	msg, _ := r.ReadString('\n')
 
 	println("Mensaje recibido:")
@@ -48,9 +49,7 @@ func handleConnection(conn net.Conn) {
 	println("mensaje a responder(enviar):")
 
 	if escribirArchivoClientes("prueba.json", msg) {
-		var linea = "correcto"
-	} else {
-		var linea = "incorrecto"
+		linea = "correcto"
 	}
 
 	conn.Write([]byte(linea))
