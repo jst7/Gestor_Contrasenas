@@ -7,6 +7,8 @@ import (
 	"log"
 	"net"
 	"os"
+	"strings"
+	"time"
 )
 
 /**
@@ -60,6 +62,32 @@ type usuario struct {
 type cuenta struct {
 	Clave string `json:"clave"`
 	ID    string `json:"id"`
+}
+
+type cookie struct {
+	user   string
+	expira time.Time
+}
+
+var galletas []cookie
+
+func setCookie(usuario string) {
+
+	galleta := cookie{user: usuario, expira: time.Now().Add(10)}
+	galletas = append(galletas, galleta)
+}
+
+func getCookie(usuario string) cookie {
+	encontrado := true
+	var oreo cookie
+	for i := 0; i < len(galletas) && encontrado == false; i++ {
+		if strings.Compare(galletas[i].user, usuario) == 0 {
+			oreo = cookie{user: galletas[i].user, expira: galletas[i].expira}
+		}
+	}
+
+	return oreo
+
 }
 
 func exribirArchivoClientes(file string, data string) bool {
