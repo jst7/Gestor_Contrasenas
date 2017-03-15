@@ -36,20 +36,22 @@ func main() {
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 	r := bufio.NewReader(conn)
-	for {
-		msg, _ := r.ReadString('\n')
 
-		println("Mensaje recibido:")
-		println(msg)
-		escribirArchivoClientes("prueba.json", msg)
-		println("mensaje a responder(enviar):")
-		var linea string
-		fmt.Scanf("%s\n", &linea)
+	msg, _ := r.ReadString('\n')
 
-		conn.Write([]byte(linea + "\n"))
-		//n, _err := conn.Write([]byte(linea + "\n"))
+	println("Mensaje recibido:")
+	println(msg)
 
-	}
+	println("mensaje a responder(enviar):")
+	var linea string
+	fmt.Scanf("%s\n", &linea)
+	escribirArchivoClientes("prueba.json", msg)
+
+	println("Mensaje recibido:")
+	println(msg)
+
+	conn.Write([]byte(linea))
+	//n, _err := conn.Write([]byte(linea + "\n"))
 
 }
 
