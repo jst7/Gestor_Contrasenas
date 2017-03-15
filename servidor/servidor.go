@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"crypto/tls"
-	"fmt"
 	"log"
 	"net"
 	"os"
@@ -43,12 +42,12 @@ func handleConnection(conn net.Conn) {
 	println(msg)
 
 	println("mensaje a responder(enviar):")
-	var linea string
-	fmt.Scanf("%s\n", &linea)
-	escribirArchivoClientes("prueba.json", msg)
 
-	println("Mensaje recibido:")
-	println(msg)
+	if escribirArchivoClientes("prueba.json", msg) {
+		var linea = "correcto"
+	} else {
+		var linea = "incorrecto"
+	}
 
 	conn.Write([]byte(linea))
 	//n, _err := conn.Write([]byte(linea + "\n"))

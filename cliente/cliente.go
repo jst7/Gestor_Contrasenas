@@ -107,7 +107,8 @@ func crearUsuario() {
 	}
 
 	user := usuario{nombre, datos, contes}
-	usuarioToJSON(user)
+	var usuario = usuarioToJSON(user)
+	comunicacion(usuario)
 }
 
 func comunicacion(enviar []byte) {
