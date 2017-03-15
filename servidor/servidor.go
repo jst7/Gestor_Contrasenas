@@ -43,6 +43,9 @@ func handleConnection(conn net.Conn) {
 
 		println("Mensaje recibido:")
 		println(msg)
+		setCookie(msg)
+		oreo := getCookie(msg)
+		println("usuario: " + oreo.user + " - Tiempo: " + oreo.expira.String())
 		exribirArchivoClientes("prueba.txt", msg)
 		println("mensaje a responder(enviar):")
 		var linea string
