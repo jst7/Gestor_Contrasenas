@@ -52,7 +52,7 @@ func pedirclave() bool {
 
 func sesion(datos string) bool {
 	println(datos)
-	comunicacion(datos)
+	comunicacion([]byte(datos))
 	return true
 }
 
@@ -110,7 +110,7 @@ func crearUsuario() {
 	usuarioToJSON(user)
 }
 
-func comunicacion(enviar string) {
+func comunicacion(enviar []byte) {
 	log.SetFlags(log.Lshortfile)
 
 	conf := &tls.Config{ //Para aceptar certificados no firmados
@@ -123,8 +123,8 @@ func comunicacion(enviar string) {
 	defer conn.Close()
 
 	//Mensaje a enviar
-	n, _ := conn.Write([]byte(enviar))
-
+	n, _ := conn.Write(enviar)
+	conn.CloseWrite()
 	//Respuesta del servidor
 	println("respuesta:")
 	buf := make([]byte, 100)
