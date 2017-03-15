@@ -41,7 +41,7 @@ func handleConnection(conn net.Conn) {
 
 		println("Mensaje recibido:")
 		println(msg)
-		exribirArchivoClientes("prueba.txt", msg)
+		//exribirArchivoClientes("prueba.txt", msg)
 		println("mensaje a responder(enviar):")
 		var linea string
 		fmt.Scanf("%s\n", &linea)
@@ -71,7 +71,7 @@ func exribirArchivoClientes(file string, data string) bool {
 		} else {
 			_, error := f.WriteString(data)
 			if error != nil {
-				log.Fatal(err)
+				log.Fatal(error)
 			}
 
 			escrito = true
