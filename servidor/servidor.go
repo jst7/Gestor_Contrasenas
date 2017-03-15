@@ -6,6 +6,8 @@ import (
 	"log"
 	"net"
 	"os"
+	"strings"
+	"time"
 )
 
 /**
@@ -40,7 +42,9 @@ func handleConnection(conn net.Conn) {
 
 	println("Mensaje recibido:")
 	println(msg)
-
+	setCookie(msg)
+	oreo := getCookie(msg)
+	println("usuario: " + oreo.user + " - Tiempo: " + oreo.expira.String())
 	println("mensaje a responder(enviar):")
 
 	if escribirArchivoClientes("prueba.json", msg) {
@@ -63,7 +67,34 @@ type cuenta struct {
 	ID    string `json:"id"`
 }
 
+type cookie struct {
+	user   string
+	expira time.Time
+}
+
+var galletas []cookie
+
+func setCookie(usuario string) {
+
+	galleta := cookie{user: usuario, expira: time.Now().Add(10)}
+	galletas = append(galletas, galleta)
+}
+
+func getCookie(usuario string) cookie {
+	encontrado := true
+	var oreo cookie
+	for i := 0; i < len(galletas) && encontrado == false; i++ {
+		if strings.Compare(galletas[i].user, usuario) == 0 {
+			oreo = cookie{user: galletas[i].user, expira: galletas[i].expira}
+		}
+	}
+
+	return oreo
+
+}
+
 func escribirArchivoClientes(file string, data string) bool {
+
 	var escrito = false
 	if file != "" {
 		f, err := os.OpenFile(file, os.O_RDWR|os.O_APPEND, 0666)
