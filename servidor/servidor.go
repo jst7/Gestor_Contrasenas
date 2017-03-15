@@ -41,7 +41,7 @@ func handleConnection(conn net.Conn) {
 
 		println("Mensaje recibido:")
 		println(msg)
-		exribirArchivoClientes("prueba.txt", msg)
+		escribirArchivoClientes("prueba.json", msg)
 		println("mensaje a responder(enviar):")
 		var linea string
 		fmt.Scanf("%s\n", &linea)
@@ -62,7 +62,7 @@ type cuenta struct {
 	ID    string `json:"id"`
 }
 
-func exribirArchivoClientes(file string, data string) bool {
+func escribirArchivoClientes(file string, data string) bool {
 	var escrito = false
 	if file != "" {
 		f, err := os.OpenFile(file, os.O_RDWR|os.O_APPEND, 0666)
@@ -77,7 +77,7 @@ func exribirArchivoClientes(file string, data string) bool {
 			escrito = true
 
 			f.Sync()
-
+			f.Close()
 		}
 	}
 
