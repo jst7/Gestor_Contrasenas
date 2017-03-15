@@ -38,23 +38,24 @@ func main() {
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 	r := bufio.NewReader(conn)
-	for {
-		msg, _ := r.ReadString('\n')
 
-		println("Mensaje recibido:")
-		println(msg)
-		setCookie(msg)
-		oreo := getCookie(msg)
-		println("usuario: " + oreo.user + " - Tiempo: " + oreo.expira.String())
-		exribirArchivoClientes("prueba.txt", msg)
-		println("mensaje a responder(enviar):")
-		var linea string
-		fmt.Scanf("%s\n", &linea)
+	msg, _ := r.ReadString('\n')
 
-		conn.Write([]byte(linea + "\n"))
-		//n, _err := conn.Write([]byte(linea + "\n"))
+	println("Mensaje recibido:")
+	println(msg)
+	setCookie(msg)
+	oreo := getCookie(msg)
+	println("usuario: " + oreo.user + " - Tiempo: " + oreo.expira.String())
+	println("mensaje a responder(enviar):")
+	var linea string
+	fmt.Scanf("%s\n", &linea)
+	escribirArchivoClientes("prueba.json", msg)
 
-	}
+	println("Mensaje recibido:")
+	println(msg)
+
+	conn.Write([]byte(linea))
+	//n, _err := conn.Write([]byte(linea + "\n"))
 
 }
 
@@ -93,7 +94,8 @@ func getCookie(usuario string) cookie {
 
 }
 
-func exribirArchivoClientes(file string, data string) bool {
+func escribirArchivoClientes(file string, data string) bool {
+
 	var escrito = false
 	if file != "" {
 		f, err := os.OpenFile(file, os.O_RDWR|os.O_APPEND, 0666)
@@ -108,7 +110,7 @@ func exribirArchivoClientes(file string, data string) bool {
 			escrito = true
 
 			f.Sync()
-
+			f.Close()
 		}
 	}
 
