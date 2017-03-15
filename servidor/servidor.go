@@ -41,7 +41,7 @@ func handleConnection(conn net.Conn) {
 
 		println("Mensaje recibido:")
 		println(msg)
-		//exribirArchivoClientes("prueba.txt", msg)
+		exribirArchivoClientes("prueba.txt", msg)
 		println("mensaje a responder(enviar):")
 		var linea string
 		fmt.Scanf("%s\n", &linea)
@@ -65,7 +65,7 @@ type cuenta struct {
 func exribirArchivoClientes(file string, data string) bool {
 	var escrito = false
 	if file != "" {
-		f, err := os.Open(file)
+		f, err := os.OpenFile(file, os.O_RDWR|os.O_APPEND, 0666)
 		if err != nil {
 			log.Fatal(err)
 		} else {
