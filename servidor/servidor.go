@@ -93,11 +93,19 @@ func getCookie(usuario string) cookie {
 func exribirArchivoClientes(file string, data string) bool {
 	var escrito = false
 	if file != "" {
-		f, err := os.Open(file)
+		f, err := os.OpenFile(file, os.O_RDWR|os.O_APPEND, 0666)
 		if err != nil {
 			log.Fatal(err)
 		} else {
-			f.WriteString(data)
+			_, error := f.WriteString(data)
+			if error != nil {
+				log.Fatal(error)
+			}
+
+			escrito = true
+
+			f.Sync()
+
 		}
 	}
 

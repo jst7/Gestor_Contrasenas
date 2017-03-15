@@ -16,7 +16,6 @@ Todos las "_" se pueden sustituir por "err" y añadir el codigo:
 	}
 **/
 func main() {
-
 	var op int
 	op = 0
 	for i := 1; op != 3; i++ {
@@ -40,15 +39,21 @@ func menuComunicacion() {
 func pedirclave() bool {
 	var archivo string
 	println("Introduce tu archivo:")
-	fmt.Scanf("%s\n", archivo)
+	fmt.Scanf("%s\n", &archivo)
 
-	dat, err := ioutil.ReadFile("/" + archivo)
+	dat, err := ioutil.ReadFile(archivo)
 	if err != nil {
-		log.Println(err)
+		//log.Println(err)
+		println("No se ha podido leer el archivo: " + archivo)
+		return false
 	}
-	fmt.Print(string(dat))
+	return sesion(string(dat))
+}
 
-	return false
+func sesion(datos string) bool {
+	println(datos)
+	comunicacion(datos)
+	return true
 }
 
 func menu() int {
@@ -105,7 +110,7 @@ func crearUsuario() {
 	usuarioToJSON(user)
 }
 
-func comunicacion() {
+func comunicacion(enviar string) {
 	log.SetFlags(log.Lshortfile)
 
 	conf := &tls.Config{ //Para aceptar certificados no firmados
@@ -118,10 +123,7 @@ func comunicacion() {
 	defer conn.Close()
 
 	//Mensaje a enviar
-	println("Mensaje a enviar:")
-	var linea string
-	fmt.Scanf("%s\n", &linea)
-	n, _ := conn.Write([]byte(linea + "\n"))
+	n, _ := conn.Write([]byte(enviar))
 
 	//Respuesta del servidor
 	println("respuesta:")
@@ -134,7 +136,7 @@ func comunicacion() {
 func usuarioToJSON(user usuario) []byte { //Crear el json
 
 	resultado, _ := json.Marshal(user)
-	//fmt.Printf("%s\n", resultado)
+	fmt.Printf("%s\n", resultado)
 
 	return resultado
 }
@@ -167,21 +169,6 @@ func añadirCuentaAUsuario(user usuario) usuario {
 	UsuarioModificado := usuario{user.Name, user.Datos, contes}
 
 	return UsuarioModificado
-}
-
-//metodo que muestra los datos formateados de un usuario
-func leerUsuario(user usuario) {
-
-	println(user.Name)
-
-	for i := 0; i < len(user.Cuentas); i++ {
-		println("---------")
-		println("Servicio: " + user.Cuentas[i].Servicio)
-		println("Usuario: " + user.Cuentas[i].Usuario)
-		println("Contraseña: " + user.Cuentas[i].Contraseña)
-	}
-	println()
-
 }
 
 type usuario struct {
