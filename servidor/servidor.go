@@ -37,6 +37,7 @@ func main() {
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 	r := bufio.NewReader(conn)
+	//var oreo cookie
 
 	var linea = "incorrecto"
 	msg, _ := r.ReadString('\n')
@@ -74,17 +75,20 @@ type cookie struct {
 var galletas []cookie
 
 func setCookie(usuario string) {
-
-	galleta := cookie{user: usuario, expira: time.Now().Add(10)}
+	galleta := cookie{user: usuario, expira: time.Now().Add(10 * time.Second)}
+	println(time.Now().String())
 	galletas = append(galletas, galleta)
+
 }
 
 func getCookie(usuario string) cookie {
-	encontrado := true
+	encontrado := false
 	var oreo cookie
 	for i := 0; i < len(galletas) && encontrado == false; i++ {
+
 		if strings.Compare(galletas[i].user, usuario) == 0 {
 			oreo = cookie{user: galletas[i].user, expira: galletas[i].expira}
+			encontrado = true
 		}
 	}
 
