@@ -44,9 +44,14 @@ func handleConnection(conn net.Conn) {
 
 	println("Mensaje recibido:")
 	println(msg)
-	setCookie(msg)
+	/*setCookie(msg)
 	oreo := getCookie(msg)
 	println("usuario: " + oreo.user + " - Tiempo: " + oreo.expira.String())
+	if statusCookie(msg) {
+		println("Entra")
+	} else {
+		println("No Entra")
+	}*/
 	println("mensaje a responder(enviar):")
 
 	if escribirArchivoClientes("prueba.json", msg) {
@@ -74,13 +79,15 @@ type cookie struct {
 
 var galletas []cookie
 
+//crea la cookie para el usuario
 func setCookie(usuario string) {
-	galleta := cookie{user: usuario, expira: time.Now().Add(10 * time.Second)}
+	galleta := cookie{user: usuario, expira: time.Now().Add(50 * time.Second)}
 	println(time.Now().String())
 	galletas = append(galletas, galleta)
 
 }
 
+//devuelve la cookie con el nombre de usuario insertado
 func getCookie(usuario string) cookie {
 	encontrado := false
 	var oreo cookie
@@ -93,6 +100,31 @@ func getCookie(usuario string) cookie {
 	}
 
 	return oreo
+
+}
+
+//compara si la hora actual es anterior que la del expire de la cookie pasada por parametro
+func statusCookie(usuario string) bool {
+	encontrado := false
+	var oreo cookie
+	for i := 0; i < len(galletas) && encontrado == false; i++ {
+
+		if strings.Compare(galletas[i].user, usuario) == 0 {
+			oreo = cookie{user: galletas[i].user, expira: galletas[i].expira}
+			encontrado = true
+		}
+	}
+
+	if encontrado == true {
+		if time.Now().Before(oreo.expira) {
+			return true
+		} else {
+			return false
+		}
+
+	}
+
+	return encontrado
 
 }
 
