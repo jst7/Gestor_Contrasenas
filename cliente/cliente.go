@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/tls"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -107,11 +108,13 @@ func crearUsuario() {
 	}
 
 	user := usuario{nombre, datos, contes}
-	var usuario = usuarioToJSON(user)
-	comunicacion(usuario)
+	peticion := Peticion{"crearUsuario", user}
+	var pet = peticionToJSON(peticion)
+	comunicacion(pet)
 }
 
 func comunicacion(enviar []byte) {
+	flag.Parse()
 	log.SetFlags(log.Lshortfile)
 
 	conf := &tls.Config{ //Para aceptar certificados no firmados
@@ -138,11 +141,16 @@ func usuarioToJSON(user usuario) []byte { //Crear el json
 
 	resultado, _ := json.Marshal(user)
 	fmt.Printf("%s\n", resultado)
-
 	return resultado
 }
 
-func jSONtoUsuario(user []byte) usuario { //Crear el json
+func peticionToJSON(peticion Peticion) []byte {
+	resultado, _ := json.Marshal(peticion)
+	fmt.Printf("%s\n", resultado)
+	return resultado
+}
+
+func jSONtoUsuario(user []byte) usuario { //desjoson
 
 	var usuarioDescifrado usuario
 	json.Unmarshal(user, &usuarioDescifrado)
@@ -182,4 +190,8 @@ type cuenta struct {
 	Usuario    string `json:"usuario"`
 	Contraseña string `json:"contraseña"`
 	Servicio   string `json:"servicio"`
+}
+type Peticion struct {
+	Tipo    string  `json:"tipo"`
+	Usuario usuario `json:"usuario"`
 }
