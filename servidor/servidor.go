@@ -3,12 +3,40 @@ package main
 import (
 	"bufio"
 	"crypto/tls"
+	"encoding/json"
+	"fmt"
 	"log"
 	"net"
 	"os"
 	"strings"
 	"time"
 )
+
+type usuario struct {
+	Name    string   `json:"nombre"`
+	Datos   string   `json:"datos"`
+	Cuentas []cuenta `json:"cuentas"`
+}
+
+type cuenta struct {
+	Usuario    string `json:"usuario"`
+	Contraseña string `json:"contraseña"`
+	Servicio   string `json:"servicio"`
+	//Clave string `json:"clave"`
+	//ID    string `json:"id"`
+}
+
+type cookie struct {
+	user   string
+	expira time.Time
+}
+
+type Peticion struct {
+	Tipo    string  `json:"tipo"`
+	Usuario usuario `json:"usuario"`
+}
+
+var galletas []cookie
 
 /**
 Todos las "_" se pueden sustituir por "err" y añadir el codigo:
@@ -53,9 +81,12 @@ func handleConnection(conn net.Conn) {
 		println("No Entra")
 	}*/
 	println("mensaje a responder(enviar):")
-
-	if escribirArchivoClientes("prueba.json", msg) {
-		linea = "correcto"
+	var pet = jSONtoPeticion([]byte(msg))
+	if comprobarTipoPeticion(pet) == "creacion" {
+		println(string(usuarioToJSON(pet.Usuario)))
+		if escribirArchivoClientes("prueba.json", string(usuarioToJSON(pet.Usuario))) {
+			linea = "correcto"
+		}
 	}
 
 	conn.Write([]byte(linea))
@@ -63,21 +94,13 @@ func handleConnection(conn net.Conn) {
 
 }
 
-type usuario struct {
-	Cuentas []cuenta `json:"cuentas"`
+func comprobarTipoPeticion(data Peticion) string {
+	var devolucion = "otro"
+	if data.Tipo == "crearUsuario" {
+		devolucion = "creacion"
+	}
+	return devolucion
 }
-
-type cuenta struct {
-	Clave string `json:"clave"`
-	ID    string `json:"id"`
-}
-
-type cookie struct {
-	user   string
-	expira time.Time
-}
-
-var galletas []cookie
 
 //crea la cookie para el usuario
 func setCookie(usuario string) {
@@ -123,7 +146,6 @@ func statusCookie(usuario string) bool {
 		}
 
 	}
-
 	return encontrado
 
 }
@@ -149,4 +171,19 @@ func escribirArchivoClientes(file string, data string) bool {
 	}
 
 	return escrito
+}
+
+func jSONtoPeticion(peticion []byte) Peticion { //desjoson
+
+	var peticionDescifrado Peticion
+	json.Unmarshal(peticion, &peticionDescifrado)
+
+	return peticionDescifrado
+}
+
+func usuarioToJSON(user usuario) []byte { //Crear el json
+
+	resultado, _ := json.Marshal(user)
+	fmt.Printf("%s\n", resultado)
+	return resultado
 }

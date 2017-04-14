@@ -1,1 +1,1 @@
-{"nombre":"juan","datos":"pepe","cuentas":null}{"nombre":"Jorge","datos":"pues","cuentas":null}{"nombre":"pep","datos":"ke","cuentas":null}{"nombre":"aaa","datos":"papa","cuentas":null}{"nombre":"aa","datos":"prue","cuentas":null}abcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd
+{"nombre":"pepe","datos":"jojo","cuentas":[{"usuario":"p","contraseña":"1234","servicio":"netflix"},{"usuario":"pl","contraseña":"1234","servicio":"youtube"}]}
