@@ -3,12 +3,40 @@ package main
 import (
 	"bufio"
 	"crypto/tls"
+	"encoding/json"
+	"fmt"
 	"log"
 	"net"
 	"os"
 	"strings"
 	"time"
 )
+
+type usuario struct {
+	Name    string   `json:"nombre"`
+	Datos   string   `json:"datos"`
+	Cuentas []cuenta `json:"cuentas"`
+}
+
+type cuenta struct {
+	Usuario    string `json:"usuario"`
+	Contraseña string `json:"contraseña"`
+	Servicio   string `json:"servicio"`
+	//Clave string `json:"clave"`
+	//ID    string `json:"id"`
+}
+
+type cookie struct {
+	user   string
+	expira time.Time
+}
+
+type Peticion struct {
+	Tipo    string  `json:"tipo"`
+	Usuario usuario `json:"usuario"`
+}
+
+var galletas []cookie
 
 /**
 Todos las "_" se pueden sustituir por "err" y añadir el codigo:
@@ -52,10 +80,16 @@ func handleConnection(conn net.Conn) {
 	} else {
 		println("No Entra")
 	}*/
-	println("mensaje a responder(enviar):")
 
-	if escribirArchivoClientes("prueba.json", msg) {
-		linea = "correcto"
+	var pet = jSONtoPeticion([]byte(msg))
+
+	switch comprobarTipoPeticion(pet) {
+	case "creacion":
+		if CreacionUsuarioPorPeticion(pet) {
+			linea = "correcto"
+		}
+	default:
+		linea = "incorrecto"
 	}
 
 	conn.Write([]byte(linea))
@@ -63,21 +97,13 @@ func handleConnection(conn net.Conn) {
 
 }
 
-type usuario struct {
-	Cuentas []cuenta `json:"cuentas"`
+func comprobarTipoPeticion(data Peticion) string {
+	var devolucion = "otro"
+	if data.Tipo == "crearUsuario" {
+		devolucion = "creacion"
+	}
+	return devolucion
 }
-
-type cuenta struct {
-	Clave string `json:"clave"`
-	ID    string `json:"id"`
-}
-
-type cookie struct {
-	user   string
-	expira time.Time
-}
-
-var galletas []cookie
 
 //crea la cookie para el usuario
 func setCookie(usuario string) {
@@ -123,11 +149,43 @@ func statusCookie(usuario string) bool {
 		}
 
 	}
-
 	return encontrado
 
 }
 
+func CreacionUsuarioPorPeticion(peticion Peticion) bool {
+	var correcto = false
+
+	if escribirArchivoClientes("usuarios.json", "{ \"nombre:\""+peticion.Usuario.Name+"\"datos:\""+peticion.Usuario.Datos+"}") {
+		createFile(peticion.Usuario.Name + ".json")
+		escribirArchivoClientes(peticion.Usuario.Name+".json", "[")
+		for _, element := range peticion.Usuario.Cuentas {
+			if escribirArchivoClientes(peticion.Usuario.Name+".json", string(CuentasToJSON(element))+",") {
+				correcto = true
+			} else {
+				correcto = false
+			}
+		}
+		escribirArchivoClientes(peticion.Usuario.Name+".json", "]")
+
+	}
+
+	return correcto
+}
+func createFile(filename string) {
+	// detect if file exists
+	var _, err = os.Stat(filename)
+
+	// create file if not exists
+	if os.IsNotExist(err) {
+		var file, err = os.Create(filename)
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(0)
+		}
+		defer file.Close()
+	}
+}
 func escribirArchivoClientes(file string, data string) bool {
 
 	var escrito = false
@@ -136,7 +194,7 @@ func escribirArchivoClientes(file string, data string) bool {
 		if err != nil {
 			log.Fatal(err)
 		} else {
-			_, error := f.WriteString(data)
+			_, error := f.WriteString(data + "\n")
 			if error != nil {
 				log.Fatal(error)
 			}
@@ -149,4 +207,19 @@ func escribirArchivoClientes(file string, data string) bool {
 	}
 
 	return escrito
+}
+
+func jSONtoPeticion(peticion []byte) Peticion { //desjoson
+
+	var peticionDescifrado Peticion
+	json.Unmarshal(peticion, &peticionDescifrado)
+
+	return peticionDescifrado
+}
+
+func CuentasToJSON(cuent cuenta) []byte { //Crear el json
+
+	resultado, _ := json.Marshal(cuent)
+	fmt.Printf("%s\n", resultado)
+	return resultado
 }
