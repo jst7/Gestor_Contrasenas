@@ -80,13 +80,16 @@ func handleConnection(conn net.Conn) {
 	} else {
 		println("No Entra")
 	}*/
-	println("mensaje a responder(enviar):")
+
 	var pet = jSONtoPeticion([]byte(msg))
-	if comprobarTipoPeticion(pet) == "creacion" {
-		println(string(usuarioToJSON(pet.Usuario)))
-		if escribirArchivoClientes("prueba.json", string(usuarioToJSON(pet.Usuario))) {
+
+	switch comprobarTipoPeticion(pet) {
+	case "creacion":
+		if CreacionUsuarioPorPeticion(pet) {
 			linea = "correcto"
 		}
+	default:
+		linea = "incorrecto"
 	}
 
 	conn.Write([]byte(linea))
@@ -150,6 +153,39 @@ func statusCookie(usuario string) bool {
 
 }
 
+func CreacionUsuarioPorPeticion(peticion Peticion) bool {
+	var correcto = false
+
+	if escribirArchivoClientes("usuarios.json", "{ \"nombre:\""+peticion.Usuario.Name+"\"datos:\""+peticion.Usuario.Datos+"}") {
+		createFile(peticion.Usuario.Name + ".json")
+		escribirArchivoClientes(peticion.Usuario.Name+".json", "[")
+		for _, element := range peticion.Usuario.Cuentas {
+			if escribirArchivoClientes(peticion.Usuario.Name+".json", string(CuentasToJSON(element))+",") {
+				correcto = true
+			} else {
+				correcto = false
+			}
+		}
+		escribirArchivoClientes(peticion.Usuario.Name+".json", "]")
+
+	}
+
+	return correcto
+}
+func createFile(filename string) {
+	// detect if file exists
+	var _, err = os.Stat(filename)
+
+	// create file if not exists
+	if os.IsNotExist(err) {
+		var file, err = os.Create(filename)
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(0)
+		}
+		defer file.Close()
+	}
+}
 func escribirArchivoClientes(file string, data string) bool {
 
 	var escrito = false
@@ -158,7 +194,7 @@ func escribirArchivoClientes(file string, data string) bool {
 		if err != nil {
 			log.Fatal(err)
 		} else {
-			_, error := f.WriteString(data)
+			_, error := f.WriteString(data + "\n")
 			if error != nil {
 				log.Fatal(error)
 			}
@@ -181,9 +217,9 @@ func jSONtoPeticion(peticion []byte) Peticion { //desjoson
 	return peticionDescifrado
 }
 
-func usuarioToJSON(user usuario) []byte { //Crear el json
+func CuentasToJSON(cuent cuenta) []byte { //Crear el json
 
-	resultado, _ := json.Marshal(user)
+	resultado, _ := json.Marshal(cuent)
 	fmt.Printf("%s\n", resultado)
 	return resultado
 }
