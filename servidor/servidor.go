@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net"
 	"os"
@@ -12,6 +13,10 @@ import (
 	"time"
 )
 
+type usuarioBD struct {
+	Name  string `json:"nombre"`
+	Datos string `json:"datos"`
+}
 type usuario struct {
 	Name    string   `json:"nombre"`
 	Datos   string   `json:"datos"`
@@ -155,18 +160,61 @@ func statusCookie(usuario string) bool {
 
 func CreacionUsuarioPorPeticion(peticion Peticion) bool {
 	var correcto = false
+	var usuarios = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
+	var usuarioNuevo usuarioBD
+	usuarioNuevo.Name = peticion.Usuario.Name
+	usuarioNuevo.Datos = peticion.Usuario.Datos
 
-	if escribirArchivoClientes("usuarios.json", "{ \"nombre:\""+peticion.Usuario.Name+"\"datos:\""+peticion.Usuario.Datos+"}") {
-		createFile(peticion.Usuario.Name + ".json")
-		if escribirArchivoClientes(peticion.Usuario.Name+".json", string(CuentasToJSON(peticion.Usuario.Cuentas))) {
-			correcto = true
-		} else {
-			correcto = false
+	if !comprobarExistenciaUSR(usuarios, usuarioNuevo) {
+		deleteFile("usuarios.json")
+		createFile("usuarios.json")
+		var nuevalista = append(usuarios, usuarioNuevo)
+		if escribirArchivoClientes("usuarios.json", string(UsuariosBDToJSON(nuevalista))) {
+			createFile(peticion.Usuario.Name + ".json")
+			if peticion.Usuario.Cuentas != nil {
+				if escribirArchivoClientes(peticion.Usuario.Name+".json", string(CuentasToJSON(peticion.Usuario.Cuentas))) {
+					correcto = true
+				} else {
+					correcto = false
+				}
+			} else {
+				if escribirArchivoClientes(peticion.Usuario.Name+".json", "[]") {
+					correcto = true
+				} else {
+					correcto = false
+				}
+			}
 		}
 	}
 
 	return correcto
 }
+func comprobarExistenciaUSR(listaUSR []usuarioBD, usuario usuarioBD) bool {
+	var existe = false
+	for _, obj := range listaUSR {
+		if obj.Name == usuario.Name {
+			existe = true
+		}
+	}
+	return existe
+}
+
+func deleteFile(file string) {
+	var err = os.Remove(file)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func leerArchivo(readfile string) []byte {
+
+	dat, err := ioutil.ReadFile(readfile)
+	if err != nil {
+		panic(err)
+	}
+	return dat
+}
+
 func createFile(filename string) {
 	// detect if file exists
 	var _, err = os.Stat(filename)
@@ -217,4 +265,19 @@ func CuentasToJSON(cuent []cuenta) []byte { //Crear el json
 	resultado, _ := json.Marshal(cuent)
 	fmt.Printf("%s\n", resultado)
 	return resultado
+}
+
+func UsuariosBDToJSON(usrs []usuarioBD) []byte { //Crear el json
+
+	resultado, _ := json.Marshal(usrs)
+	fmt.Printf("%s\n", resultado)
+	return resultado
+}
+
+func jSONtoUsuariosBD(usuariosDataFile []byte) []usuarioBD { //desjoson
+
+	var usuariosDescifrado []usuarioBD
+	json.Unmarshal(usuariosDataFile, &usuariosDescifrado)
+
+	return usuariosDescifrado
 }
