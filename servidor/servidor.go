@@ -158,16 +158,11 @@ func CreacionUsuarioPorPeticion(peticion Peticion) bool {
 
 	if escribirArchivoClientes("usuarios.json", "{ \"nombre:\""+peticion.Usuario.Name+"\"datos:\""+peticion.Usuario.Datos+"}") {
 		createFile(peticion.Usuario.Name + ".json")
-		escribirArchivoClientes(peticion.Usuario.Name+".json", "[")
-		for _, element := range peticion.Usuario.Cuentas {
-			if escribirArchivoClientes(peticion.Usuario.Name+".json", string(CuentasToJSON(element))+",") {
-				correcto = true
-			} else {
-				correcto = false
-			}
+		if escribirArchivoClientes(peticion.Usuario.Name+".json", string(CuentasToJSON(peticion.Usuario.Cuentas))) {
+			correcto = true
+		} else {
+			correcto = false
 		}
-		escribirArchivoClientes(peticion.Usuario.Name+".json", "]")
-
 	}
 
 	return correcto
@@ -217,7 +212,7 @@ func jSONtoPeticion(peticion []byte) Peticion { //desjoson
 	return peticionDescifrado
 }
 
-func CuentasToJSON(cuent cuenta) []byte { //Crear el json
+func CuentasToJSON(cuent []cuenta) []byte { //Crear el json
 
 	resultado, _ := json.Marshal(cuent)
 	fmt.Printf("%s\n", resultado)

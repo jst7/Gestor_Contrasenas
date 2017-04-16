@@ -1,6 +1,1 @@
-[
-{"usuario":"netflix","contraseña":"net","servicio":"netflix"},
-{"usuario":"prueba","contraseña":"caca","servicio":"yt"},
-{"usuario":"pepa","contraseña":"1234","servicio":"tw"},
-{"usuario":"prueba2","contraseña":"345","servicio":"ll"},
-]
+[{"usuario":"pepe","contraseña":"1234","servicio":"net"},{"usuario":"ca","contraseña":"4321","servicio":"yt"},{"usuario":"luis","contraseña":"5432","servicio":"bbb"}]
