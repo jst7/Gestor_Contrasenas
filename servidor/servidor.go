@@ -94,6 +94,9 @@ func handleConnection(conn net.Conn) {
 	case "creacion":
 		if CreacionUsuarioPorPeticion(pet) {
 			linea = "correcto"
+		} else {
+			linea = "----------------\nUsuario ya Existente\n----------------"
+
 		}
 	default:
 		linea = "incorrecto"
