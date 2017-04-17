@@ -11,6 +11,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type usuarioBD struct {
@@ -166,19 +168,32 @@ func CreacionUsuarioPorPeticion(peticion Peticion) bool {
 	usuarioNuevo.Datos = peticion.Usuario.Datos
 
 	if !comprobarExistenciaUSR(usuarios, usuarioNuevo) {
+
+		var nombre string
+		password := []byte(peticion.Usuario.Name)
+		// Hashing the password with the default cost of 10
+		hashedPassword, _ := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+
+		for strings.Contains(string(hashedPassword), "/") { //Lo realizamos para que no genere con / ya que a la hora de directorios da problemas
+			hashedPassword, _ = bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+		}
+		//fmt.Println(string(hashedPassword))
+		nombre = string(hashedPassword)
+
 		deleteFile("usuarios.json")
 		createFile("usuarios.json")
+		usuarioNuevo.Name = nombre
 		var nuevalista = append(usuarios, usuarioNuevo)
 		if escribirArchivoClientes("usuarios.json", string(UsuariosBDToJSON(nuevalista))) {
-			createFile(peticion.Usuario.Name + ".json")
+			createFile(nombre + ".json")
 			if peticion.Usuario.Cuentas != nil {
-				if escribirArchivoClientes(peticion.Usuario.Name+".json", string(CuentasToJSON(peticion.Usuario.Cuentas))) {
+				if escribirArchivoClientes(nombre+".json", string(CuentasToJSON(peticion.Usuario.Cuentas))) {
 					correcto = true
 				} else {
 					correcto = false
 				}
 			} else {
-				if escribirArchivoClientes(peticion.Usuario.Name+".json", "[]") {
+				if escribirArchivoClientes(nombre+".json", "[]") {
 					correcto = true
 				} else {
 					correcto = false
@@ -192,7 +207,9 @@ func CreacionUsuarioPorPeticion(peticion Peticion) bool {
 func comprobarExistenciaUSR(listaUSR []usuarioBD, usuario usuarioBD) bool {
 	var existe = false
 	for _, obj := range listaUSR {
-		if obj.Name == usuario.Name {
+		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(usuario.Name))
+		if err == nil {
+			fmt.Println("EXISTE EL USUARIO SOLICITADO")
 			existe = true
 		}
 	}

@@ -85,6 +85,7 @@ func crearUsuario() {
 	//Datos de Usuario
 	println("Nombre del usuario")
 	fmt.Scanf("%s\n", &nombre)
+
 	println("Datos adicionales")
 	fmt.Scanf("%s\n", &datos)
 
