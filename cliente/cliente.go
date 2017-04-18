@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 )
 
@@ -38,22 +37,20 @@ func menuComunicacion() {
 }
 
 func pedirclave() bool {
-	var archivo string
-	println("Introduce tu archivo:")
-	fmt.Scanf("%s\n", &archivo)
+	var nombre string
+	var contraseña string
 
-	dat, err := ioutil.ReadFile(archivo)
-	if err != nil {
-		//log.Println(err)
-		println("No se ha podido leer el archivo: " + archivo)
-		return false
-	}
-	return sesion(string(dat))
-}
+	println("Introduce tu usuario:")
+	fmt.Scanf("%s\n", &nombre)
 
-func sesion(datos string) bool {
-	println(datos)
-	comunicacion([]byte(datos))
+	println("Introduce tu contraseña:")
+	fmt.Scanf("%s\n", &contraseña)
+
+	user := usuario{nombre, contraseña, nil}
+	peticion := Peticion{"sesion", user}
+	var pet = peticionToJSON(peticion)
+	comunicacion(pet)
+
 	return true
 }
 
@@ -71,12 +68,12 @@ func menu() int {
 func crearUsuario() {
 	//Datos de usuario
 	var nombre string
-	var datos string
+	var contraseñaUsuario string
 	var contes []cuenta
 
 	//Datos de cuenta
 	var usuarioNombre string
-	var contraseña string
+	var contraseñaCuenta string
 	var servicio string
 
 	//Booleano de añadir cuenta
@@ -86,8 +83,8 @@ func crearUsuario() {
 	println("Nombre del usuario")
 	fmt.Scanf("%s\n", &nombre)
 
-	println("Datos adicionales")
-	fmt.Scanf("%s\n", &datos)
+	println("Contraseña")
+	fmt.Scanf("%s\n", &contraseñaUsuario)
 
 	//Añadir primera cuenta
 	println("¿Deseas añadir una cuenta?")
@@ -98,17 +95,17 @@ func crearUsuario() {
 			println("Usuario:")
 			fmt.Scanf("%s\n", &usuarioNombre)
 			println("Contraseña:")
-			fmt.Scanf("%s\n", &contraseña)
+			fmt.Scanf("%s\n", &contraseñaCuenta)
 			println("Servicio:")
 			fmt.Scanf("%s\n", &servicio)
-			n := cuenta{usuarioNombre, contraseña, servicio}
+			n := cuenta{usuarioNombre, contraseñaCuenta, servicio}
 			contes = append(contes, n)
 			println("¿Deseas añadir otra cuenta?")
 			fmt.Scanf("%s\n", &crear)
 		}
 	}
 
-	user := usuario{nombre, datos, contes}
+	user := usuario{nombre, contraseñaUsuario, contes}
 	peticion := Peticion{"crearUsuario", user}
 	var pet = peticionToJSON(peticion)
 	comunicacion(pet)
@@ -176,15 +173,15 @@ func añadirCuentaAUsuario(user usuario) usuario {
 	n := cuenta{usuarioNombre, contraseña, servicio}
 	contes = append(user.Cuentas, n)
 
-	UsuarioModificado := usuario{user.Name, user.Datos, contes}
+	UsuarioModificado := usuario{user.Name, user.Contraseña, contes}
 
 	return UsuarioModificado
 }
 
 type usuario struct {
-	Name    string   `json:"nombre"`
-	Datos   string   `json:"datos"`
-	Cuentas []cuenta `json:"cuentas"` //Para almacenar mas de una cuenta
+	Name       string   `json:"nombre"`
+	Contraseña string   `json:"contraseña"`
+	Cuentas    []cuenta `json:"cuentas"` //Para almacenar mas de una cuenta
 }
 
 type cuenta struct {

@@ -16,13 +16,13 @@ import (
 )
 
 type usuarioBD struct {
-	Name  string `json:"nombre"`
-	Datos string `json:"datos"`
+	Name       string `json:"nombre"`
+	Contraseña string `json:"contraseña"`
 }
 type usuario struct {
-	Name    string   `json:"nombre"`
-	Datos   string   `json:"datos"`
-	Cuentas []cuenta `json:"cuentas"`
+	Name       string   `json:"nombre"`
+	Contraseña string   `json:"Contraseña"`
+	Cuentas    []cuenta `json:"cuentas"`
 }
 
 type cuenta struct {
@@ -90,13 +90,20 @@ func handleConnection(conn net.Conn) {
 
 	var pet = jSONtoPeticion([]byte(msg))
 
-	switch comprobarTipoPeticion(pet) {
-	case "creacion":
+	switch pet.Tipo {
+	case "crearUsuario":
 		if CreacionUsuarioPorPeticion(pet) {
-			linea = "correcto"
+			linea = "----------------\nUsuario Creado\n----------------"
 		} else {
 			linea = "----------------\nUsuario ya Existente\n----------------"
 
+		}
+	case "sesion":
+		fmt.Println("ENTRO")
+		if recuperarSesion(pet) {
+			linea = "----------------\nSesión Iniciada\n----------------"
+		} else {
+			linea = "----------------\nUsuario Incorrecto\n----------------"
 		}
 	default:
 		linea = "incorrecto"
@@ -107,13 +114,13 @@ func handleConnection(conn net.Conn) {
 
 }
 
-func comprobarTipoPeticion(data Peticion) string {
+/*func comprobarTipoPeticion(data Peticion) string {
 	var devolucion = "otro"
 	if data.Tipo == "crearUsuario" {
 		devolucion = "creacion"
 	}
 	return devolucion
-}
+}*/
 
 //crea la cookie para el usuario
 func setCookie(usuario string) {
@@ -163,12 +170,41 @@ func statusCookie(usuario string) bool {
 
 }
 
+func recuperarSesion(peticion Peticion) bool {
+
+	var usuarioComprobar usuarioBD
+
+	usuarioComprobar.Name = peticion.Usuario.Name
+	usuarioComprobar.Contraseña = peticion.Usuario.Contraseña
+
+	if iniciarSesion(usuarioComprobar) {
+		return true
+	}
+
+	return false
+}
+
+func iniciarSesion(usuario usuarioBD) bool {
+	var listaUSR = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
+
+	var entra = false
+	for _, obj := range listaUSR {
+		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(usuario.Name))
+		if err == nil {
+			if strings.EqualFold(usuario.Contraseña, obj.Contraseña) {
+				entra = true
+			}
+		}
+	}
+	return entra
+}
+
 func CreacionUsuarioPorPeticion(peticion Peticion) bool {
 	var correcto = false
 	var usuarios = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
 	var usuarioNuevo usuarioBD
 	usuarioNuevo.Name = peticion.Usuario.Name
-	usuarioNuevo.Datos = peticion.Usuario.Datos
+	usuarioNuevo.Contraseña = peticion.Usuario.Contraseña
 
 	if !comprobarExistenciaUSR(usuarios, usuarioNuevo) {
 
