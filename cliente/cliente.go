@@ -47,9 +47,9 @@ func pedirclave() bool {
 	fmt.Scanf("%s\n", &contraseña)
 
 	user := usuario{nombre, contraseña, nil}
-	peticion := Peticion{"sesion", user}
-	var pet = peticionToJSON(peticion)
-	comunicacion(pet)
+	pet := peticion{"sesion", user}
+	var peti = peticionToJSON(pet)
+	comunicacion(peti)
 
 	return true
 }
@@ -106,9 +106,9 @@ func crearUsuario() {
 	}
 
 	user := usuario{nombre, contraseñaUsuario, contes}
-	peticion := Peticion{"crearUsuario", user}
-	var pet = peticionToJSON(peticion)
-	comunicacion(pet)
+	pet := peticion{"crearUsuario", user}
+	var peti = peticionToJSON(pet)
+	comunicacion(peti)
 }
 
 func comunicacion(enviar []byte) {
@@ -142,8 +142,8 @@ func usuarioToJSON(user usuario) []byte { //Crear el json
 	return resultado
 }
 
-func peticionToJSON(peticion Peticion) []byte {
-	resultado, _ := json.Marshal(peticion)
+func peticionToJSON(pet peticion) []byte {
+	resultado, _ := json.Marshal(pet)
 	fmt.Printf("%s\n", resultado)
 	return resultado
 }
@@ -189,7 +189,7 @@ type cuenta struct {
 	Contraseña string `json:"contraseña"`
 	Servicio   string `json:"servicio"`
 }
-type Peticion struct {
+type peticion struct {
 	Tipo    string  `json:"tipo"`
 	Usuario usuario `json:"usuario"`
 }
