@@ -38,7 +38,7 @@ type cookie struct {
 	expira time.Time
 }
 
-type Peticion struct {
+type peticion struct {
 	Tipo    string  `json:"tipo"`
 	Usuario usuario `json:"usuario"`
 }
@@ -92,7 +92,7 @@ func handleConnection(conn net.Conn) {
 
 	switch pet.Tipo {
 	case "crearUsuario":
-		if CreacionUsuarioPorPeticion(pet) {
+		if creacionUsuarioPorPeticion(pet) {
 			linea = "----------------\nUsuario Creado\n----------------"
 		} else {
 			linea = "----------------\nUsuario ya Existente\n----------------"
@@ -159,23 +159,24 @@ func statusCookie(usuario string) bool {
 	}
 
 	if encontrado == true {
+		var salida bool
+		salida = false
 		if time.Now().Before(oreo.expira) {
-			return true
-		} else {
-			return false
+			salida = true
 		}
+		return salida
 
 	}
 	return encontrado
 
 }
 
-func recuperarSesion(peticion Peticion) bool {
+func recuperarSesion(pet peticion) bool {
 
 	var usuarioComprobar usuarioBD
 
-	usuarioComprobar.Name = peticion.Usuario.Name
-	usuarioComprobar.Contraseña = peticion.Usuario.Contraseña
+	usuarioComprobar.Name = pet.Usuario.Name
+	usuarioComprobar.Contraseña = pet.Usuario.Contraseña
 
 	if iniciarSesion(usuarioComprobar) {
 		return true
@@ -199,17 +200,17 @@ func iniciarSesion(usuario usuarioBD) bool {
 	return entra
 }
 
-func CreacionUsuarioPorPeticion(peticion Peticion) bool {
+func creacionUsuarioPorPeticion(pet peticion) bool {
 	var correcto = false
 	var usuarios = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
 	var usuarioNuevo usuarioBD
-	usuarioNuevo.Name = peticion.Usuario.Name
-	usuarioNuevo.Contraseña = peticion.Usuario.Contraseña
+	usuarioNuevo.Name = pet.Usuario.Name
+	usuarioNuevo.Contraseña = pet.Usuario.Contraseña
 
 	if !comprobarExistenciaUSR(usuarios, usuarioNuevo) {
 
 		var nombre string
-		password := []byte(peticion.Usuario.Name)
+		password := []byte(pet.Usuario.Name)
 		// Hashing the password with the default cost of 10
 		hashedPassword, _ := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
 
@@ -223,10 +224,10 @@ func CreacionUsuarioPorPeticion(peticion Peticion) bool {
 		createFile("usuarios.json")
 		usuarioNuevo.Name = nombre
 		var nuevalista = append(usuarios, usuarioNuevo)
-		if escribirArchivoClientes("usuarios.json", string(UsuariosBDToJSON(nuevalista))) {
+		if escribirArchivoClientes("usuarios.json", string(usuariosBDToJSON(nuevalista))) {
 			createFile(nombre + ".json")
-			if peticion.Usuario.Cuentas != nil {
-				if escribirArchivoClientes(nombre+".json", string(CuentasToJSON(peticion.Usuario.Cuentas))) {
+			if pet.Usuario.Cuentas != nil {
+				if escribirArchivoClientes(nombre+".json", string(cuentasToJSON(pet.Usuario.Cuentas))) {
 					correcto = true
 				} else {
 					correcto = false
@@ -308,22 +309,22 @@ func escribirArchivoClientes(file string, data string) bool {
 	return escrito
 }
 
-func jSONtoPeticion(peticion []byte) Peticion { //desjoson
+func jSONtoPeticion(pet []byte) peticion { //desjoson
 
-	var peticionDescifrado Peticion
-	json.Unmarshal(peticion, &peticionDescifrado)
+	var peticionDescifrado peticion
+	json.Unmarshal(pet, &peticionDescifrado)
 
 	return peticionDescifrado
 }
 
-func CuentasToJSON(cuent []cuenta) []byte { //Crear el json
+func cuentasToJSON(cuent []cuenta) []byte { //Crear el json
 
 	resultado, _ := json.Marshal(cuent)
 	fmt.Printf("%s\n", resultado)
 	return resultado
 }
 
-func UsuariosBDToJSON(usrs []usuarioBD) []byte { //Crear el json
+func usuariosBDToJSON(usrs []usuarioBD) []byte { //Crear el json
 
 	resultado, _ := json.Marshal(usrs)
 	fmt.Printf("%s\n", resultado)
