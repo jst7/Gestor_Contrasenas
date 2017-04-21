@@ -18,22 +18,45 @@ Todos las "_" se pueden sustituir por "err" y añadir el codigo:
 func main() {
 	var op int
 	op = 0
+	var dentro int
 	for i := 1; op != 3; i++ {
+		dentro = 0
 		op = menu()
-		if op == 1 {
+		if op == 1 { //Crear cuenta
 			crearUsuario()
-		} else if op == 2 {
+		} else if op == 2 { //Iniciar Sesión
 			if pedirclave() {
-				menuComunicacion()
+				for j := 0; dentro != 4; j++ {
+					dentro = menuComunicacion()
+
+					if dentro == 1 { //Listar cuentas guardadas
+
+					} else if dentro == 2 { //Eliminar una cuenta concreta
+
+					} else if dentro == 3 { //Modificar una cuenta
+
+					} else { //Cerrar sesión
+
+					}
+
+				}
 			}
-		} else {
+		} else { //Salir del programa
 
 		}
 	}
 }
 
-func menuComunicacion() {
+func menuComunicacion() int {
+	println("1. Listar cuentas")
+	println("2. Eliminar cuenta")
+	println("3. Modificar cuenta")
+	println("4. Cerrar Sesión")
 
+	var op int
+	fmt.Scanf("%d\n", &op)
+
+	return op
 }
 
 func pedirclave() bool {
@@ -49,9 +72,11 @@ func pedirclave() bool {
 	user := usuario{nombre, contraseña, nil}
 	pet := peticion{"sesion", user}
 	var peti = peticionToJSON(pet)
-	comunicacion(peti)
+	if comunicacion(peti) == "----------------\nSesión Iniciada\n----------------" {
+		return true
+	}
 
-	return true
+	return false
 }
 
 func menu() int {
@@ -111,7 +136,7 @@ func crearUsuario() {
 	comunicacion(peti)
 }
 
-func comunicacion(enviar []byte) {
+func comunicacion(enviar []byte) string {
 	flag.Parse()
 	log.SetFlags(log.Lshortfile)
 
@@ -133,6 +158,8 @@ func comunicacion(enviar []byte) {
 	n, _ = conn.Read(buf)
 
 	println(string(buf[:n]))
+
+	return string(buf[:n])
 }
 
 func usuarioToJSON(user usuario) []byte { //Crear el json
