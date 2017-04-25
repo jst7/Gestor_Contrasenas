@@ -43,7 +43,7 @@ type peticion struct {
 	Usuario usuario `json:"usuario"`
 }
 
-var galletas []cookie
+var galleta cookie
 
 /**
 Todos las "_" se pueden sustituir por "err" y añadir el codigo:
@@ -124,44 +124,24 @@ func handleConnection(conn net.Conn) {
 
 //crea la cookie para el usuario
 func setCookie(usuario string) {
-	galleta := cookie{user: usuario, expira: time.Now().Add(50 * time.Second)}
+	galleta = cookie{user: usuario, expira: time.Now().Add(50 * time.Second)}
 	println(time.Now().String())
-	galletas = append(galletas, galleta)
 
 }
 
 //devuelve la cookie con el nombre de usuario insertado
 func getCookie(usuario string) cookie {
-	encontrado := false
-	var oreo cookie
-	for i := 0; i < len(galletas) && encontrado == false; i++ {
-
-		if strings.Compare(galletas[i].user, usuario) == 0 {
-			oreo = cookie{user: galletas[i].user, expira: galletas[i].expira}
-			encontrado = true
-		}
-	}
-
-	return oreo
-
+	return galleta
 }
 
 //compara si la hora actual es anterior que la del expire de la cookie pasada por parametro
+//si devuelve true es porque la sesion puede seguir activa, si devuelve false no
 func statusCookie(usuario string) bool {
 	encontrado := false
-	var oreo cookie
-	for i := 0; i < len(galletas) && encontrado == false; i++ {
-
-		if strings.Compare(galletas[i].user, usuario) == 0 {
-			oreo = cookie{user: galletas[i].user, expira: galletas[i].expira}
-			encontrado = true
-		}
-	}
-
-	if encontrado == true {
+	if strings.Compare(galleta.user, usuario) == 0 {
 		var salida bool
 		salida = false
-		if time.Now().Before(oreo.expira) {
+		if time.Now().Before(galleta.expira) {
 			salida = true
 		}
 		return salida
@@ -171,6 +151,7 @@ func statusCookie(usuario string) bool {
 
 }
 
+//añadido las cookies en recuperar sesion
 func recuperarSesion(pet peticion) bool {
 
 	var usuarioComprobar usuarioBD
@@ -193,6 +174,7 @@ func iniciarSesion(usuario usuarioBD) bool {
 		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(usuario.Name))
 		if err == nil {
 			if strings.EqualFold(usuario.Contraseña, obj.Contraseña) {
+				setCookie(obj.Name)
 				entra = true
 			}
 		}
@@ -240,6 +222,7 @@ func creacionUsuarioPorPeticion(pet peticion) bool {
 				}
 			}
 		}
+		setCookie(nombre)
 	}
 
 	return correcto

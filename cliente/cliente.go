@@ -70,7 +70,7 @@ func pedirclave() bool {
 	fmt.Scanf("%s\n", &contraseña)
 
 	user := usuario{nombre, contraseña, nil}
-	pet := peticion{"sesion", user}
+	pet := peticion{"sesion", "null", user}
 	var peti = peticionToJSON(pet)
 	if comunicacion(peti) == "----------------\nSesión Iniciada\n----------------" {
 		return true
@@ -131,7 +131,7 @@ func crearUsuario() {
 	}
 
 	user := usuario{nombre, contraseñaUsuario, contes}
-	pet := peticion{"crearUsuario", user}
+	pet := peticion{"crearUsuario", "null", user}
 	var peti = peticionToJSON(pet)
 	comunicacion(peti)
 }
@@ -205,6 +205,26 @@ func añadirCuentaAUsuario(user usuario) usuario {
 	return UsuarioModificado
 }
 
+func comprobarCookie(usuario string) bool {
+	var nombre string
+	var contraseña string
+
+	println("Introduce tu usuario:")
+	fmt.Scanf("%s\n", &nombre)
+
+	println("Introduce tu contraseña:")
+	fmt.Scanf("%s\n", &contraseña)
+
+	user := usuario{nombre, contraseña, nil}
+	pet := peticion{"sesion", "null", user}
+	var peti = peticionToJSON(pet)
+	if comunicacion(peti) == "----------------\nSesión Iniciada\n----------------" {
+		return true
+	}
+
+	return false
+}
+
 type usuario struct {
 	Name       string   `json:"nombre"`
 	Contraseña string   `json:"contraseña"`
@@ -218,5 +238,6 @@ type cuenta struct {
 }
 type peticion struct {
 	Tipo    string  `json:"tipo"`
+	Cookie  string  `json:"cookie"`
 	Usuario usuario `json:"usuario"`
 }
