@@ -1,10 +1,15 @@
 package main
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
 	"crypto/tls"
+	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 )
 
@@ -17,6 +22,7 @@ Todos las "_" se pueden sustituir por "err" y añadir el codigo:
 **/
 func main() {
 	var op int
+	//key := []byte("example key 1234")
 	op = 0
 	var dentro int
 	for i := 1; op != 3; i++ {
@@ -70,9 +76,9 @@ func pedirclave() bool {
 	fmt.Scanf("%s\n", &contraseña)
 
 	user := usuario{nombre, contraseña, nil}
-	pet := peticion{"sesion", "null", user}
+	pet := peticion{"sesion", "null", user, nil}
 	var peti = peticionToJSON(pet)
-	if comunicacion(peti) == "----------------\nSesión Iniciada\n----------------" {
+	if comunicacion(peti) == "sesIniciada" { //"----------------\nSesión Iniciada\n----------------" {
 		return true
 	}
 
@@ -131,7 +137,7 @@ func crearUsuario() {
 	}
 
 	user := usuario{nombre, contraseñaUsuario, contes}
-	pet := peticion{"crearUsuario", "null", user}
+	pet := peticion{"crearUsuario", "null", user, nil}
 	var peti = peticionToJSON(pet)
 	comunicacion(peti)
 }
@@ -154,12 +160,16 @@ func comunicacion(enviar []byte) string {
 	conn.CloseWrite()
 	//Respuesta del servidor
 	println("respuesta:")
-	buf := make([]byte, 100)
+	buf := make([]byte, 200)
 	n, _ = conn.Read(buf)
 
 	println(string(buf[:n]))
 
-	return string(buf[:n])
+	var pet = jSONtoPeticion(buf[:n])
+
+	println(pet.Cookie)
+
+	return pet.Tipo //string(buf[:n])
 }
 
 func usuarioToJSON(user usuario) []byte { //Crear el json
@@ -205,24 +215,61 @@ func añadirCuentaAUsuario(user usuario) usuario {
 	return UsuarioModificado
 }
 
-func comprobarCookie(usuario string) bool {
-	var nombre string
-	var contraseña string
+func jSONtoPeticion(pet []byte) peticion { //desjoson
 
-	println("Introduce tu usuario:")
-	fmt.Scanf("%s\n", &nombre)
+	var peticionDescifrado peticion
+	json.Unmarshal(pet, &peticionDescifrado)
 
-	println("Introduce tu contraseña:")
-	fmt.Scanf("%s\n", &contraseña)
+	return peticionDescifrado
+}
 
-	user := usuario{nombre, contraseña, nil}
-	pet := peticion{"sesion", "null", user}
-	var peti = peticionToJSON(pet)
-	if comunicacion(peti) == "----------------\nSesión Iniciada\n----------------" {
-		return true
+func encrypt(key []byte, text string) string {
+	// key := []byte(keyText)
+	plaintext := []byte(text)
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err)
 	}
 
-	return false
+	// The IV needs to be unique, but not secure. Therefore it's common to
+	// include it at the beginning of the ciphertext.
+	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
+	iv := ciphertext[:aes.BlockSize]
+	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+		panic(err)
+	}
+
+	stream := cipher.NewCFBEncrypter(block, iv)
+	stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
+
+	// convert to base64
+	return base64.URLEncoding.EncodeToString(ciphertext)
+}
+
+// decrypt from base64 to decrypted string
+func decrypt(key []byte, cryptoText string) string {
+	ciphertext, _ := base64.URLEncoding.DecodeString(cryptoText)
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err)
+	}
+
+	// The IV needs to be unique, but not secure. Therefore it's common to
+	// include it at the beginning of the ciphertext.
+	if len(ciphertext) < aes.BlockSize {
+		panic("ciphertext too short")
+	}
+	iv := ciphertext[:aes.BlockSize]
+	ciphertext = ciphertext[aes.BlockSize:]
+
+	stream := cipher.NewCFBDecrypter(block, iv)
+
+	// XORKeyStream can work in-place if the two arguments are the same.
+	stream.XORKeyStream(ciphertext, ciphertext)
+
+	return fmt.Sprintf("%s", ciphertext)
 }
 
 type usuario struct {
@@ -237,7 +284,8 @@ type cuenta struct {
 	Servicio   string `json:"servicio"`
 }
 type peticion struct {
-	Tipo    string  `json:"tipo"`
-	Cookie  string  `json:"cookie"`
-	Usuario usuario `json:"usuario"`
+	Tipo    string   `json:"tipo"`
+	Cookie  string   `json:"cookie"`
+	Usuario usuario  `json:"usuario"`
+	cuentas []cuenta `json:"cuentas"`
 }
