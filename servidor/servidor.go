@@ -51,9 +51,9 @@ type peticion struct {
 }
 
 type respuesta struct {
-	Tipo      string `json:"tipo"`
-	Cookie    string `json:"cookie"` //o token segun lo que implemente fran
-	Respuesta string `json:"respuesta"`
+	Estado string `json:"estado"`
+	Cookie string `json:"cookie"` //o token segun lo que implemente fran
+	Cuerpo string `json:"respuesta"`
 }
 
 var galleta cookie
@@ -93,7 +93,8 @@ func handleConnection(conn net.Conn) {
 	defer conn.Close()
 	r := bufio.NewReader(conn)
 
-	var peti []byte
+	var resp []byte
+
 	var linea = "incorrecto"
 	msg, _ := r.ReadString('\n')
 
@@ -109,11 +110,15 @@ func handleConnection(conn net.Conn) {
 			var usuarioCrear usuario
 			usuarioCrear.Name = pet.Usuario.Name
 			usuarioCrear.Contraseña = pet.Usuario.Contraseña
-			pet := peticion{"userCreado", galleta.Oreo, usuarioCrear}
-			peti = peticionToJSON(pet)
+			//pet := peticion{"userCreado", galleta.Oreo, usuarioCrear}
+			res := respuesta{"Correcto", galleta.Oreo, "Usuario creado correctamente"} //falta meter la cookie
+			resp = respuestaToJSON(res)
+
+			//peti = peticionToJSON(pet)
 		} else {
 			// "----------------\nUsuario ya Existente\n----------------"
-
+			res := respuesta{"Incorrecto", galleta.Oreo, "Usuario no creado, ya existe un usuario"}
+			resp = respuestaToJSON(res)
 		}
 	case "sesion":
 
@@ -124,23 +129,33 @@ func handleConnection(conn net.Conn) {
 
 			usuarioComprobar.Name = pet.Usuario.Name
 			usuarioComprobar.Contraseña = pet.Usuario.Contraseña
-			pet := peticion{"sesIniciada", galleta.Oreo, usuarioComprobar}
-			peti = peticionToJSON(pet)
+			//pet := peticion{"sesIniciada", galleta.Oreo, usuarioComprobar}
+			//peti = peticionToJSON(pet)
+
+			res := respuesta{"Correcto", galleta.Oreo, "Sesion iniciada"} //falta meter la cookie
+			resp = respuestaToJSON(res)
 
 		} else {
 			//"----------------\nUsuario Incorrecto\n----------------"
+			res := respuesta{"Incorrecto", galleta.Oreo, "No se ha podido iniciar sesión"}
+			resp = respuestaToJSON(res)
 		}
 
 	case "cuentas":
 
 		fmt.Println("Cuentas")
+		res := respuesta{"Correcto", galleta.Oreo, "Cuentas son las siguientes"} //falta meter la cookie
+		resp = respuestaToJSON(res)
 
 	default:
-		//linea = "incorrecto"
+
+		linea = "incorrecto"
+		res := respuesta{"Incorrecto", galleta.Oreo, "Ha ocurrido un error"} //falta meter la cookie
+		resp = respuestaToJSON(res)
 	}
 
 	println(linea)
-	conn.Write(peti)
+	conn.Write(resp)
 	//conn.Write([]byte(linea))
 	//n, _err := conn.Write([]byte(linea + "\n"))
 
