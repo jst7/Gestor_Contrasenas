@@ -13,6 +13,30 @@ import (
 	"log"
 )
 
+type usuario struct {
+	Name       string   `json:"nombre"`
+	Contraseña string   `json:"contraseña"`
+	Cuentas    []cuenta `json:"cuentas"` //Para almacenar mas de una cuenta
+}
+
+type cuenta struct {
+	Usuario    string `json:"usuario"`
+	Contraseña string `json:"contraseña"`
+	Servicio   string `json:"servicio"`
+}
+type peticion struct {
+	Tipo    string   `json:"tipo"`
+	Cookie  string   `json:"cookie"`
+	Usuario usuario  `json:"usuario"`
+	Cuentas []cuenta `json:"cuentas"`
+}
+type respuesta struct {
+	Estado     string `json:"estado"`
+	Cookie     string `json:"cookie"`     //o token segun lo que implemente fran
+	TipoCuerpo string `json:"tipocuerpo"` //tipo de dato del cuerpo
+	Cuerpo     []byte `json:"respuesta"`
+}
+
 /**
 Todos las "_" se pueden sustituir por "err" y añadir el codigo:
 	if err != nil {
@@ -181,9 +205,9 @@ func comunicacion(enviar []byte) string {
 
 	println(string(buf[:n]))
 
-	var pet = jSONtoPeticion(buf[:n])
+	//var pet = jSONtoPeticion(buf[:n])
 
-	println(pet.Cookie)
+	//println(pet.Cookie)
 
 	return string(buf[:n])
 }
@@ -279,22 +303,4 @@ func desencriptar(datosEncriptados string, key []byte) string {
 	stream.XORKeyStream(ciphertext, ciphertext)
 
 	return fmt.Sprintf("%s", ciphertext)
-}
-
-type usuario struct {
-	Name       string   `json:"nombre"`
-	Contraseña string   `json:"contraseña"`
-	Cuentas    []cuenta `json:"cuentas"` //Para almacenar mas de una cuenta
-}
-
-type cuenta struct {
-	Usuario    string `json:"usuario"`
-	Contraseña string `json:"contraseña"`
-	Servicio   string `json:"servicio"`
-}
-type peticion struct {
-	Tipo    string   `json:"tipo"`
-	Cookie  string   `json:"cookie"`
-	Usuario usuario  `json:"usuario"`
-	Cuentas []cuenta `json:"cuentas"`
 }
