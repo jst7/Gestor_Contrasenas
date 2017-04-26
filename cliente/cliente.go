@@ -121,6 +121,10 @@ func crearUsuario() {
 	println("¿Deseas añadir una cuenta?")
 	fmt.Scanf("%s\n", &crear)
 
+	//key del usuario
+	var key []byte
+	key = obtenerkeyUsuario(contraseñaUsuario)
+
 	if crear == "si" {
 		for crear != "no" {
 			println("Usuario:")
@@ -129,17 +133,29 @@ func crearUsuario() {
 			fmt.Scanf("%s\n", &contraseñaCuenta)
 			println("Servicio:")
 			fmt.Scanf("%s\n", &servicio)
-			n := cuenta{usuarioNombre, contraseñaCuenta, servicio}
+			n := cuenta{encriptar([]byte(usuarioNombre), key), encriptar([]byte(contraseñaCuenta), key), encriptar([]byte(servicio), key)}
 			contes = append(contes, n)
 			println("¿Deseas añadir otra cuenta?")
 			fmt.Scanf("%s\n", &crear)
 		}
 	}
 
-	user := usuario{nombre, contraseñaUsuario, contes}
+	user := usuario{nombre, encriptar([]byte(contraseñaUsuario), key), contes}
 	pet := peticion{"crearUsuario", "null", user, nil}
 	var peti = peticionToJSON(pet)
 	comunicacion(peti)
+}
+
+func obtenerkeyUsuario(contraseña string) []byte {
+	var salida string
+	salida = contraseña
+	for {
+		if len(salida) == 16 {
+			return []byte(salida)
+		} else {
+			salida = salida + "0"
+		}
+	}
 }
 
 func comunicacion(enviar []byte) string {
