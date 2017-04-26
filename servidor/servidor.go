@@ -34,15 +34,14 @@ type cuenta struct {
 }
 
 type cookie struct {
-	oreo   string    `json:"galleta"`
-	expira time.Time `json:"expira"`
+	Oreo   string    `json:"galleta"`
+	Expira time.Time `json:"expira"`
 }
 
 type peticion struct {
-	Tipo    string   `json:"tipo"`
-	Cookie  string   `json:"cookie"`
-	Usuario usuario  `json:"usuario"`
-	cuentas []cuenta `json:"cuentas"`
+	Tipo    string  `json:"tipo"`
+	Cookie  string  `json:"cookie"`
+	Usuario usuario `json:"usuario"`
 }
 
 var galleta cookie
@@ -74,6 +73,7 @@ func main() {
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 	r := bufio.NewReader(conn)
+	var peti []byte
 
 	var linea = "incorrecto"
 	msg, _ := r.ReadString('\n')
@@ -86,38 +86,41 @@ func handleConnection(conn net.Conn) {
 	switch pet.Tipo {
 	case "crearUsuario":
 		if creacionUsuarioPorPeticion(pet) {
-			linea = "----------------\nUsuario Creado\n----------------"
+			// "----------------\nUsuario Creado\n----------------"
+
+			var usuarioCrear usuario
+
+			usuarioCrear.Name = pet.Usuario.Name
+			usuarioCrear.Contraseña = pet.Usuario.Contraseña
+
+			pet := peticion{"userCreado", galleta.Oreo, usuarioCrear}
+
+			peti = peticionToJSON(pet)
 		} else {
-			linea = "----------------\nUsuario ya Existente\n----------------"
+			// "----------------\nUsuario ya Existente\n----------------"
 
 		}
 	case "sesion":
 		fmt.Println("ENTRO")
 		if recuperarSesion(pet) {
-			//linea = "----------------\nSesión Iniciada\n----------------"
+			//"----------------\nSesión Iniciada\n----------------"
 			var usuarioComprobar usuario
 
 			usuarioComprobar.Name = pet.Usuario.Name
 			usuarioComprobar.Contraseña = pet.Usuario.Contraseña
-			usuarioComprobar.Cuentas = pet.Usuario.Cuentas
-			pet := peticion{"sesIniciada", galleta.oreo, usuarioComprobar, nil}
-			var peti = peticionToJSON(pet)
-			conn.Write(peti)
+			pet := peticion{"sesIniciada", galleta.Oreo, usuarioComprobar}
+			peti = peticionToJSON(pet)
+
 		} else {
-			linea = "----------------\nUsuario Incorrecto\n----------------"
+			//"----------------\nUsuario Incorrecto\n----------------"
 		}
 	case "cuentas":
 		fmt.Println("Cuentas")
-		//cuentas := JSONtoCuentas()
-		//pet := peticion{"cuentas", galleta.oreo, cuentas}
-		//var peti = peticionToJSON(pet)
-
-		//conn.Write(peti)
-
 	default:
 		linea = "incorrecto"
 	}
 	println(linea)
+	conn.Write(peti)
 
 	//conn.Write([]byte(linea))
 	//n, _err := conn.Write([]byte(linea + "\n"))
@@ -134,7 +137,7 @@ func handleConnection(conn net.Conn) {
 
 //crea la cookie para el usuario
 func setCookie(usuario string) {
-	galleta = cookie{oreo: usuario, expira: time.Now().Add(5000 * time.Second)}
+	galleta = cookie{Oreo: usuario, Expira: time.Now().Add(5000 * time.Second)}
 	println(time.Now().String())
 
 }
@@ -148,7 +151,7 @@ func getCookie() cookie {
 //si devuelve true es porque la sesion puede seguir activa, si devuelve false no
 func statusCookie() bool {
 	estado := false
-	if time.Now().Before(galleta.expira) {
+	if time.Now().Before(galleta.Expira) {
 		estado = true
 	}
 	return estado
@@ -178,7 +181,7 @@ func iniciarSesion(usuario usuarioBD) bool {
 		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(usuario.Name))
 		if err == nil {
 			if strings.EqualFold(usuario.Contraseña, obj.Contraseña) {
-				setCookie(obj.Name)
+				setCookie("AQUI VA EL TOKEN")
 				entra = true
 			}
 		}
@@ -326,9 +329,9 @@ func jSONtoUsuariosBD(usuariosDataFile []byte) []usuarioBD { //desjoson
 	return usuariosDescifrado
 }
 
-func JSONtoCuentas() []cuenta {
+func jSONtoCuentas() []cuenta {
 	var listadeCuentas []cuenta
-	json.Unmarshal([]byte(galleta.oreo), listadeCuentas)
+	json.Unmarshal([]byte(galleta.Oreo), listadeCuentas)
 
 	return listadeCuentas
 

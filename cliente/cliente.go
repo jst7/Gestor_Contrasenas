@@ -169,7 +169,7 @@ func comunicacion(enviar []byte) string {
 
 	println(pet.Cookie)
 
-	return pet.Tipo //string(buf[:n])
+	return string(buf[:n])
 }
 
 func usuarioToJSON(user usuario) []byte { //Crear el json
@@ -287,5 +287,5 @@ type peticion struct {
 	Tipo    string   `json:"tipo"`
 	Cookie  string   `json:"cookie"`
 	Usuario usuario  `json:"usuario"`
-	cuentas []cuenta `json:"cuentas"`
+	Cuentas []cuenta `json:"cuentas"`
 }
