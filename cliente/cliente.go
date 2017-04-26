@@ -206,12 +206,19 @@ func comunicacion(enviar []byte) string {
 	println(string(buf[:n]))
 
 	//var pet = jSONtoPeticion(buf[:n])
-
+	var res = jSONtoRespuesta(buf[:n])
+	println(res.Cookie)
 	//println(pet.Cookie)
 
 	return string(buf[:n])
 }
+func jSONtoRespuesta(resp []byte) respuesta { //desjoson
 
+	var respuestaDescifrado respuesta
+	json.Unmarshal(resp, &respuestaDescifrado)
+
+	return respuestaDescifrado
+}
 func usuarioToJSON(user usuario) []byte { //Crear el json
 
 	resultado, _ := json.Marshal(user)
