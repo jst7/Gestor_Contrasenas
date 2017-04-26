@@ -146,14 +146,6 @@ func handleConnection(conn net.Conn) {
 
 }
 
-/*func comprobarTipoPeticion(data Peticion) string {
-	var devolucion = "otro"
-	if data.Tipo == "crearUsuario" {
-		devolucion = "creacion"
-	}
-	return devolucion
-}*/
-
 //crea la cookie para el usuario
 func setCookie(n int) {
 	token, err := GenerateRandomString(n)
@@ -391,6 +383,12 @@ func jSONtoCuentas() []cuenta {
 
 func peticionToJSON(pet peticion) []byte {
 	resultado, _ := json.Marshal(pet)
+	fmt.Printf("%s\n", resultado)
+	return resultado
+}
+
+func respuestaToJSON(res respuesta) []byte {
+	resultado, _ := json.Marshal(res)
 	fmt.Printf("%s\n", resultado)
 	return resultado
 }
