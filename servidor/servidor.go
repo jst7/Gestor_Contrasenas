@@ -2,7 +2,9 @@ package main
 
 import (
 	"bufio"
+	"crypto/rand"
 	"crypto/tls"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -46,6 +48,8 @@ type peticion struct {
 
 var galleta cookie
 
+var tamCookie = 50
+
 /**
 Todos las "_" se pueden sustituir por "err" y añadir el codigo:
 	if err != nil {
@@ -75,7 +79,6 @@ func handleConnection(conn net.Conn) {
 	r := bufio.NewReader(conn)
 	var peti []byte
 
-	var linea = "incorrecto"
 	msg, _ := r.ReadString('\n')
 
 	println("Mensaje recibido:")
@@ -117,9 +120,8 @@ func handleConnection(conn net.Conn) {
 	case "cuentas":
 		fmt.Println("Cuentas")
 	default:
-		linea = "incorrecto"
+		//linea = "incorrecto"
 	}
-	println(linea)
 	conn.Write(peti)
 
 	//conn.Write([]byte(linea))
@@ -136,8 +138,13 @@ func handleConnection(conn net.Conn) {
 }*/
 
 //crea la cookie para el usuario
-func setCookie(usuario string) {
-	galleta = cookie{Oreo: usuario, Expira: time.Now().Add(5000 * time.Second)}
+func setCookie(n int) {
+	token, err := GenerateRandomString(n)
+	if err != nil {
+		// Serve an appropriately vague error to the
+		// user, but log the details internally.
+	}
+	galleta = cookie{Oreo: token, Expira: time.Now().Add(60 * time.Second)}
 	println(time.Now().String())
 
 }
@@ -149,13 +156,41 @@ func getCookie() cookie {
 
 //compara si la hora actual es anterior que la del expire de la cookie pasada por parametro
 //si devuelve true es porque la sesion puede seguir activa, si devuelve false no
-func statusCookie() bool {
+func statusCookie(token string) bool {
 	estado := false
-	if time.Now().Before(galleta.Expira) {
-		estado = true
+	if galleta.Oreo == token {
+		if time.Now().Before(galleta.Expira) {
+			estado = true
+		}
 	}
+
 	return estado
 
+}
+
+// GenerateRandomBytes returns securely generated random bytes.
+// It will return an error if the system's secure random
+// number generator fails to function correctly, in which
+// case the caller should not continue.
+func GenerateRandomBytes(n int) ([]byte, error) {
+	b := make([]byte, n)
+	_, err := rand.Read(b)
+	// Note that err == nil only if we read len(b) bytes.
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
+}
+
+// GenerateRandomString returns a URL-safe, base64 encoded
+// securely generated random string.
+// It will return an error if the system's secure random
+// number generator fails to function correctly, in which
+// case the caller should not continue.
+func GenerateRandomString(s int) (string, error) {
+	b, err := GenerateRandomBytes(s)
+	return base64.URLEncoding.EncodeToString(b), err
 }
 
 //añadido las cookies en recuperar sesion
@@ -181,7 +216,7 @@ func iniciarSesion(usuario usuarioBD) bool {
 		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(usuario.Name))
 		if err == nil {
 			if strings.EqualFold(usuario.Contraseña, obj.Contraseña) {
-				setCookie("AQUI VA EL TOKEN")
+				setCookie(tamCookie)
 				entra = true
 			}
 		}
@@ -229,7 +264,7 @@ func creacionUsuarioPorPeticion(pet peticion) bool {
 				}
 			}
 		}
-		setCookie(nombre)
+		setCookie(tamCookie)
 	}
 
 	return correcto
