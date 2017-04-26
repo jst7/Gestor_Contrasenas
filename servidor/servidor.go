@@ -17,6 +17,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+/////////////////////////////////////
+/////////	Estructuras		////////
+///////////////////////////////////
+
 type usuarioBD struct {
 	Name       string `json:"nombre"`
 	Contraseña string `json:"contraseña"`
@@ -46,9 +50,19 @@ type peticion struct {
 	Usuario usuario `json:"usuario"`
 }
 
+type respuesta struct {
+	Tipo      string `json:"tipo"`
+	Cookie    string `json:"cookie"` //o token segun lo que implemente fran
+	Respuesta string `json:"respuesta"`
+}
+
 var galleta cookie
 
 var tamCookie = 50
+
+/////////////////////////////////////
+/////////	Funciones		////////
+///////////////////////////////////
 
 /**
 Todos las "_" se pueden sustituir por "err" y añadir el codigo:
@@ -75,10 +89,12 @@ func main() {
 }
 
 func handleConnection(conn net.Conn) {
+
 	defer conn.Close()
 	r := bufio.NewReader(conn)
-	var peti []byte
 
+	var peti []byte
+	var linea = "incorrecto"
 	msg, _ := r.ReadString('\n')
 
 	println("Mensaje recibido:")
@@ -90,20 +106,17 @@ func handleConnection(conn net.Conn) {
 	case "crearUsuario":
 		if creacionUsuarioPorPeticion(pet) {
 			// "----------------\nUsuario Creado\n----------------"
-
 			var usuarioCrear usuario
-
 			usuarioCrear.Name = pet.Usuario.Name
 			usuarioCrear.Contraseña = pet.Usuario.Contraseña
-
 			pet := peticion{"userCreado", galleta.Oreo, usuarioCrear}
-
 			peti = peticionToJSON(pet)
 		} else {
 			// "----------------\nUsuario ya Existente\n----------------"
 
 		}
 	case "sesion":
+
 		fmt.Println("ENTRO")
 		if recuperarSesion(pet) {
 			//"----------------\nSesión Iniciada\n----------------"
@@ -117,13 +130,17 @@ func handleConnection(conn net.Conn) {
 		} else {
 			//"----------------\nUsuario Incorrecto\n----------------"
 		}
+
 	case "cuentas":
+
 		fmt.Println("Cuentas")
+
 	default:
 		//linea = "incorrecto"
 	}
-	conn.Write(peti)
 
+	println(linea)
+	conn.Write(peti)
 	//conn.Write([]byte(linea))
 	//n, _err := conn.Write([]byte(linea + "\n"))
 
