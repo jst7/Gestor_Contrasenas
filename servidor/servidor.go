@@ -89,6 +89,9 @@ func main() {
 	}
 }
 
+/////////////////////////////////////////////
+///////// TRABAJO CON CONEXION	////////////
+///////////////////////////////////////////
 func handleConnection(conn net.Conn) {
 
 	defer conn.Close()
@@ -154,6 +157,9 @@ func handleConnection(conn net.Conn) {
 
 }
 
+/////////////////////////////////////////////
+///////////	 TRABAJO CON COOKIES	////////
+///////////////////////////////////////////
 //crea la cookie para el usuario
 func setCookie(n int) {
 	token, err := GenerateRandomString(n)
@@ -209,6 +215,10 @@ func GenerateRandomString(s int) (string, error) {
 	b, err := GenerateRandomBytes(s)
 	return base64.URLEncoding.EncodeToString(b), err
 }
+
+/////////////////////////////////////////////
+//////// TRABAJO CON USUARIOS	////////////
+///////////////////////////////////////////
 
 //añadido las cookies en recuperar sesion
 func recuperarSesion(pet peticion) bool {
@@ -298,6 +308,9 @@ func comprobarExistenciaUSR(listaUSR []usuarioBD, usuario usuarioBD) bool {
 	return existe
 }
 
+/////////////////////////////////////////////
+///////////	 TRABAJO CON ARCHIVOS	////////
+///////////////////////////////////////////
 func deleteFile(file string) {
 	var err = os.Remove(file)
 	if err != nil {
@@ -351,6 +364,9 @@ func escribirArchivoClientes(file string, data string) bool {
 	return escrito
 }
 
+/////////////////////////////////////////////
+///////////	 TRABAJO CON JSON	////////////
+///////////////////////////////////////////
 func jSONtoPeticion(pet []byte) peticion { //desjoson
 
 	var peticionDescifrado peticion
