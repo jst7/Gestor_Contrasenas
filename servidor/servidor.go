@@ -111,9 +111,6 @@ func handleConnection(conn net.Conn) {
 	case "crearUsuario":
 		if creacionUsuarioPorPeticion(pet) {
 			// "----------------\nUsuario Creado\n----------------"
-			var usuarioCrear usuario
-			usuarioCrear.Name = pet.Usuario.Name
-			usuarioCrear.Contraseña = pet.Usuario.Contraseña
 
 			res := respuesta{"Correcto", galleta.Oreo, "string", []byte("Usuario creado correctamente")} //falta meter la cookie
 			resp = respuestaToJSON(res)
@@ -130,7 +127,7 @@ func handleConnection(conn net.Conn) {
 		if recuperarSesion(pet) {
 			//"----------------\nSesión Iniciada\n----------------"
 
-			res := respuesta{"Correcto", galleta.Oreo, "string", []byte("Sesion iniciada")} //falta meter la cookie
+			res := respuesta{"Correcto", galleta.Oreo, "string", DevolvercuentasUsuario(pet)} //falta meter la cookie
 			resp = respuestaToJSON(res)
 
 		} else {
@@ -306,6 +303,9 @@ func comprobarExistenciaUSR(listaUSR []usuarioBD, usuario usuarioBD) bool {
 		}
 	}
 	return existe
+}
+func DevolvercuentasUsuario(pet peticion) []byte {
+	return leerArchivo(pet.Usuario.Name)
 }
 
 /////////////////////////////////////////////
