@@ -13,6 +13,34 @@ import (
 	"log"
 )
 
+/////////////////////////////////////
+/////////	Estructuras		////////
+///////////////////////////////////
+
+type usuario struct {
+	Name       string   `json:"nombre"`
+	Contraseña string   `json:"contraseña"`
+	Cuentas    []cuenta `json:"cuentas"` //Para almacenar mas de una cuenta
+}
+
+type cuenta struct {
+	Usuario    string `json:"usuario"`
+	Contraseña string `json:"contraseña"`
+	Servicio   string `json:"servicio"`
+}
+type peticion struct {
+	Tipo    string   `json:"tipo"`
+	Cookie  string   `json:"cookie"`
+	Usuario usuario  `json:"usuario"`
+	Cuentas []cuenta `json:"cuentas"`
+}
+type respuesta struct {
+	Estado     string `json:"estado"`
+	Cookie     string `json:"cookie"`     //o token segun lo que implemente fran
+	TipoCuerpo string `json:"tipocuerpo"` //tipo de dato del cuerpo
+	Cuerpo     []byte `json:"respuesta"`
+}
+
 /**
 Todos las "_" se pueden sustituir por "err" y añadir el codigo:
 	if err != nil {
@@ -20,6 +48,10 @@ Todos las "_" se pueden sustituir por "err" y añadir el codigo:
 		return
 	}
 **/
+/////////////////////////////////////
+/////////	Metodos			////////
+///////////////////////////////////
+
 func main() {
 	var op int
 	//key := []byte("example key 1234")
@@ -53,6 +85,50 @@ func main() {
 	}
 }
 
+func menu() int {
+	println("1. Crear cuenta nueva")
+	println("2. Recuperar datos")
+	println("3. Salir")
+
+	var op int
+	fmt.Scanf("%d\n", &op)
+
+	return op
+}
+
+/////////////////////////////////////////////
+///////// TRABAJO CON Comunicacion	////////
+///////////////////////////////////////////
+func comunicacion(enviar []byte) string {
+	flag.Parse()
+	log.SetFlags(log.Lshortfile)
+
+	conf := &tls.Config{ //Para aceptar certificados no firmados
+		InsecureSkipVerify: true,
+	}
+
+	//Conexión al servidor con la configuracion del tls
+	conn, _ := tls.Dial("tcp", "localhost:443", conf)
+
+	defer conn.Close()
+
+	//Mensaje a enviar
+	n, _ := conn.Write(enviar)
+	conn.CloseWrite()
+	//Respuesta del servidor
+	//println("respuesta:")
+	buf := make([]byte, 200)
+	n, _ = conn.Read(buf)
+
+	//println(string(buf[:n]))
+
+	//var pet = jSONtoPeticion(buf[:n])
+	var res = jSONtoRespuesta(buf[:n])
+	println(string(res.Cuerpo[:]))
+	//println(pet.Cookie)
+
+	return string(buf[:n])
+}
 func menuComunicacion() int {
 	println("1. Listar cuentas")
 	println("2. Eliminar cuenta")
@@ -65,37 +141,30 @@ func menuComunicacion() int {
 	return op
 }
 
-func pedirclave() bool {
-	var nombre string
+/////////////////////////////////////////////
+///////// TRABAJO CON USURIO	////////////
+///////////////////////////////////////////
+func añadirCuentaAUsuario(user usuario) usuario {
+
+	//Datos de cuenta
+	var usuarioNombre string
 	var contraseña string
+	var servicio string
+	var contes []cuenta
 
-	println("Introduce tu usuario:")
-	fmt.Scanf("%s\n", &nombre)
-
-	println("Introduce tu contraseña:")
+	println("Usuario:")
+	fmt.Scanf("%s\n", &usuarioNombre)
+	println("Contraseña:")
 	fmt.Scanf("%s\n", &contraseña)
+	println("Servicio:")
+	fmt.Scanf("%s\n", &servicio)
+	n := cuenta{usuarioNombre, contraseña, servicio}
+	contes = append(user.Cuentas, n)
 
-	user := usuario{nombre, contraseña, nil}
-	pet := peticion{"sesion", "null", user, nil}
-	var peti = peticionToJSON(pet)
-	if comunicacion(peti) == "sesIniciada" { //"----------------\nSesión Iniciada\n----------------" {
-		return true
-	}
+	UsuarioModificado := usuario{user.Name, user.Contraseña, contes}
 
-	return false
+	return UsuarioModificado
 }
-
-func menu() int {
-	println("1. Crear cuenta nueva")
-	println("2. Recuperar datos")
-	println("3. Salir")
-
-	var op int
-	fmt.Scanf("%d\n", &op)
-
-	return op
-}
-
 func crearUsuario() {
 	//Datos de usuario
 	var nombre string
@@ -145,7 +214,6 @@ func crearUsuario() {
 	var peti = peticionToJSON(pet)
 	comunicacion(peti)
 }
-
 func obtenerkeyUsuario(contraseña string) []byte {
 	var salida string
 	salida = contraseña
@@ -157,80 +225,55 @@ func obtenerkeyUsuario(contraseña string) []byte {
 		}
 	}
 }
+func pedirclave() bool {
+	var nombre string
+	var contraseña string
 
-func comunicacion(enviar []byte) string {
-	flag.Parse()
-	log.SetFlags(log.Lshortfile)
+	println("Introduce tu usuario:")
+	fmt.Scanf("%s\n", &nombre)
 
-	conf := &tls.Config{ //Para aceptar certificados no firmados
-		InsecureSkipVerify: true,
+	println("Introduce tu contraseña:")
+	fmt.Scanf("%s\n", &contraseña)
+
+	user := usuario{nombre, contraseña, nil}
+	pet := peticion{"sesion", "null", user, nil}
+	var peti = peticionToJSON(pet)
+	if comunicacion(peti) == "sesIniciada" { //"----------------\nSesión Iniciada\n----------------" {
+		return true
 	}
 
-	//Conexión al servidor con la configuracion del tls
-	conn, _ := tls.Dial("tcp", "localhost:443", conf)
-
-	defer conn.Close()
-
-	//Mensaje a enviar
-	n, _ := conn.Write(enviar)
-	conn.CloseWrite()
-	//Respuesta del servidor
-	println("respuesta:")
-	buf := make([]byte, 200)
-	n, _ = conn.Read(buf)
-
-	println(string(buf[:n]))
-
-	var pet = jSONtoPeticion(buf[:n])
-
-	println(pet.Cookie)
-
-	return string(buf[:n])
+	return false
 }
 
+/////////////////////////////////////////////
+///////// TRABAJO CON JSON	////////////////
+///////////////////////////////////////////
+func jSONtoRespuesta(resp []byte) respuesta { //desjoson
+
+	var respuestaDescifrado respuesta
+	json.Unmarshal(resp, &respuestaDescifrado)
+
+	return respuestaDescifrado
+}
 func usuarioToJSON(user usuario) []byte { //Crear el json
 
 	resultado, _ := json.Marshal(user)
 	fmt.Printf("%s\n", resultado)
 	return resultado
 }
-
 func peticionToJSON(pet peticion) []byte {
 	resultado, _ := json.Marshal(pet)
 	fmt.Printf("%s\n", resultado)
 	return resultado
 }
-
 func jSONtoUsuario(user []byte) usuario { //desjoson
 
 	var usuarioDescifrado usuario
 	json.Unmarshal(user, &usuarioDescifrado)
 
 	return usuarioDescifrado
+
 }
-
-func añadirCuentaAUsuario(user usuario) usuario {
-
-	//Datos de cuenta
-	var usuarioNombre string
-	var contraseña string
-	var servicio string
-	var contes []cuenta
-
-	println("Usuario:")
-	fmt.Scanf("%s\n", &usuarioNombre)
-	println("Contraseña:")
-	fmt.Scanf("%s\n", &contraseña)
-	println("Servicio:")
-	fmt.Scanf("%s\n", &servicio)
-	n := cuenta{usuarioNombre, contraseña, servicio}
-	contes = append(user.Cuentas, n)
-
-	UsuarioModificado := usuario{user.Name, user.Contraseña, contes}
-
-	return UsuarioModificado
-}
-
 func jSONtoPeticion(pet []byte) peticion { //desjoson
 
 	var peticionDescifrado peticion
@@ -239,6 +282,9 @@ func jSONtoPeticion(pet []byte) peticion { //desjoson
 	return peticionDescifrado
 }
 
+/////////////////////////////////////////////
+///////// TRABAJO CON Encriptacion	////////
+///////////////////////////////////////////
 func encriptar(datosPlanos []byte, key []byte) string {
 	plaintext := datosPlanos
 
@@ -279,22 +325,4 @@ func desencriptar(datosEncriptados string, key []byte) string {
 	stream.XORKeyStream(ciphertext, ciphertext)
 
 	return fmt.Sprintf("%s", ciphertext)
-}
-
-type usuario struct {
-	Name       string   `json:"nombre"`
-	Contraseña string   `json:"contraseña"`
-	Cuentas    []cuenta `json:"cuentas"` //Para almacenar mas de una cuenta
-}
-
-type cuenta struct {
-	Usuario    string `json:"usuario"`
-	Contraseña string `json:"contraseña"`
-	Servicio   string `json:"servicio"`
-}
-type peticion struct {
-	Tipo    string   `json:"tipo"`
-	Cookie  string   `json:"cookie"`
-	Usuario usuario  `json:"usuario"`
-	Cuentas []cuenta `json:"cuentas"`
 }

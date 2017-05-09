@@ -17,6 +17,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+/////////////////////////////////////
+/////////	Estructuras		////////
+///////////////////////////////////
+
 type usuarioBD struct {
 	Name       string `json:"nombre"`
 	Contraseña string `json:"contraseña"`
@@ -46,9 +50,20 @@ type peticion struct {
 	Usuario usuario `json:"usuario"`
 }
 
+type respuesta struct {
+	Estado     string `json:"estado"`
+	Cookie     string `json:"cookie"`     //o token segun lo que implemente fran
+	TipoCuerpo string `json:"tipocuerpo"` //tipo de dato del cuerpo
+	Cuerpo     []byte `json:"respuesta"`
+}
+
 var galleta cookie
 
 var tamCookie = 50
+
+/////////////////////////////////////
+/////////	Funciones		////////
+///////////////////////////////////
 
 /**
 Todos las "_" se pueden sustituir por "err" y añadir el codigo:
@@ -74,11 +89,17 @@ func main() {
 	}
 }
 
+/////////////////////////////////////////////
+///////// TRABAJO CON CONEXION	////////////
+///////////////////////////////////////////
 func handleConnection(conn net.Conn) {
+
 	defer conn.Close()
 	r := bufio.NewReader(conn)
-	var peti []byte
 
+	var resp []byte
+
+	var linea = "incorrecto"
 	msg, _ := r.ReadString('\n')
 
 	println("Mensaje recibido:")
@@ -91,52 +112,50 @@ func handleConnection(conn net.Conn) {
 		if creacionUsuarioPorPeticion(pet) {
 			// "----------------\nUsuario Creado\n----------------"
 
-			var usuarioCrear usuario
+			res := respuesta{"Correcto", galleta.Oreo, "string", []byte("Usuario creado correctamente")} //falta meter la cookie
+			resp = respuestaToJSON(res)
 
-			usuarioCrear.Name = pet.Usuario.Name
-			usuarioCrear.Contraseña = pet.Usuario.Contraseña
-
-			pet := peticion{"userCreado", galleta.Oreo, usuarioCrear}
-
-			peti = peticionToJSON(pet)
 		} else {
 			// "----------------\nUsuario ya Existente\n----------------"
-
+			res := respuesta{"Incorrecto", galleta.Oreo, "string", []byte("Usuario no creado, ya existe un usuario")}
+			resp = respuestaToJSON(res)
 		}
+
 	case "sesion":
-		fmt.Println("ENTRO")
+
 		if recuperarSesion(pet) {
 			//"----------------\nSesión Iniciada\n----------------"
-			var usuarioComprobar usuario
 
-			usuarioComprobar.Name = pet.Usuario.Name
-			usuarioComprobar.Contraseña = pet.Usuario.Contraseña
-			pet := peticion{"sesIniciada", galleta.Oreo, usuarioComprobar}
-			peti = peticionToJSON(pet)
+			res := respuesta{"Correcto", galleta.Oreo, "string", DevolvercuentasUsuario(pet)} //falta meter la cookie
+			resp = respuestaToJSON(res)
 
 		} else {
 			//"----------------\nUsuario Incorrecto\n----------------"
+			res := respuesta{"Incorrecto", galleta.Oreo, "string", []byte("No se ha podido iniciar sesión")}
+			resp = respuestaToJSON(res)
 		}
-	case "cuentas":
-		fmt.Println("Cuentas")
-	default:
-		//linea = "incorrecto"
-	}
-	conn.Write(peti)
 
-	//conn.Write([]byte(linea))
-	//n, _err := conn.Write([]byte(linea + "\n"))
+	case "cuentas":
+
+		fmt.Println("Cuentas")
+		res := respuesta{"Correcto", galleta.Oreo, "string", []byte("Cuentas son las siguientes")} //falta meter la cookie
+		resp = respuestaToJSON(res)
+
+	default:
+
+		linea = "incorrecto"
+		res := respuesta{"Incorrecto", galleta.Oreo, "string", []byte("Ha ocurrido un error")} //falta meter la cookie
+		resp = respuestaToJSON(res)
+	}
+
+	println(linea)
+	conn.Write(resp)
 
 }
 
-/*func comprobarTipoPeticion(data Peticion) string {
-	var devolucion = "otro"
-	if data.Tipo == "crearUsuario" {
-		devolucion = "creacion"
-	}
-	return devolucion
-}*/
-
+/////////////////////////////////////////////
+///////////	 TRABAJO CON COOKIES	////////
+///////////////////////////////////////////
 //crea la cookie para el usuario
 func setCookie(n int) {
 	token, err := GenerateRandomString(n)
@@ -168,30 +187,9 @@ func statusCookie(token string) bool {
 
 }
 
-// GenerateRandomBytes returns securely generated random bytes.
-// It will return an error if the system's secure random
-// number generator fails to function correctly, in which
-// case the caller should not continue.
-func GenerateRandomBytes(n int) ([]byte, error) {
-	b := make([]byte, n)
-	_, err := rand.Read(b)
-	// Note that err == nil only if we read len(b) bytes.
-	if err != nil {
-		return nil, err
-	}
-
-	return b, nil
-}
-
-// GenerateRandomString returns a URL-safe, base64 encoded
-// securely generated random string.
-// It will return an error if the system's secure random
-// number generator fails to function correctly, in which
-// case the caller should not continue.
-func GenerateRandomString(s int) (string, error) {
-	b, err := GenerateRandomBytes(s)
-	return base64.URLEncoding.EncodeToString(b), err
-}
+/////////////////////////////////////////////
+//////// TRABAJO CON USUARIOS	////////////
+///////////////////////////////////////////
 
 //añadido las cookies en recuperar sesion
 func recuperarSesion(pet peticion) bool {
@@ -280,7 +278,13 @@ func comprobarExistenciaUSR(listaUSR []usuarioBD, usuario usuarioBD) bool {
 	}
 	return existe
 }
+func DevolvercuentasUsuario(pet peticion) []byte {
+	return leerArchivo(pet.Usuario.Name)
+}
 
+/////////////////////////////////////////////
+///////////	 TRABAJO CON ARCHIVOS	////////
+///////////////////////////////////////////
 func deleteFile(file string) {
 	var err = os.Remove(file)
 	if err != nil {
@@ -334,6 +338,9 @@ func escribirArchivoClientes(file string, data string) bool {
 	return escrito
 }
 
+/////////////////////////////////////////////
+///////////	 TRABAJO CON JSON	////////////
+///////////////////////////////////////////
 func jSONtoPeticion(pet []byte) peticion { //desjoson
 
 	var peticionDescifrado peticion
@@ -376,4 +383,39 @@ func peticionToJSON(pet peticion) []byte {
 	resultado, _ := json.Marshal(pet)
 	fmt.Printf("%s\n", resultado)
 	return resultado
+}
+
+func respuestaToJSON(res respuesta) []byte {
+	resultado, _ := json.Marshal(res)
+	fmt.Printf("%s\n", resultado)
+	return resultado
+}
+
+/////////////////////////////////////////////
+///////////	 TRABAJO CON ECRIPTACION	////
+///////////////////////////////////////////
+
+// GenerateRandomBytes returns securely generated random bytes.
+// It will return an error if the system's secure random
+// number generator fails to function correctly, in which
+// case the caller should not continue.
+func GenerateRandomBytes(n int) ([]byte, error) {
+	b := make([]byte, n)
+	_, err := rand.Read(b)
+	// Note that err == nil only if we read len(b) bytes.
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
+}
+
+// GenerateRandomString returns a URL-safe, base64 encoded
+// securely generated random string.
+// It will return an error if the system's secure random
+// number generator fails to function correctly, in which
+// case the caller should not continue.
+func GenerateRandomString(s int) (string, error) {
+	b, err := GenerateRandomBytes(s)
+	return base64.URLEncoding.EncodeToString(b), err
 }
