@@ -305,6 +305,7 @@ func comprobarExistenciaUSR(listaUSR []usuarioBD, usuario usuarioBD) bool {
 	return existe
 }
 func DevolvercuentasUsuario(pet peticion) []byte {
+
 	return leerArchivo(pet.Usuario.Name)
 }
 
