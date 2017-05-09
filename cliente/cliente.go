@@ -244,6 +244,10 @@ func pedirclave() bool {
 
 	return false
 }
+
+/////////////////////////////////////////////
+///////// TRABAJO CON JSON	////////////////
+///////////////////////////////////////////
 func jSONtoRespuesta(resp []byte) respuesta { //desjoson
 
 	var respuestaDescifrado respuesta
@@ -251,24 +255,17 @@ func jSONtoRespuesta(resp []byte) respuesta { //desjoson
 
 	return respuestaDescifrado
 }
-
-/////////////////////////////////////////////
-///////// TRABAJO CON JSON	////////////////
-///////////////////////////////////////////
-
 func usuarioToJSON(user usuario) []byte { //Crear el json
 
 	resultado, _ := json.Marshal(user)
 	fmt.Printf("%s\n", resultado)
 	return resultado
 }
-
 func peticionToJSON(pet peticion) []byte {
 	resultado, _ := json.Marshal(pet)
 	fmt.Printf("%s\n", resultado)
 	return resultado
 }
-
 func jSONtoUsuario(user []byte) usuario { //desjoson
 
 	var usuarioDescifrado usuario
@@ -277,7 +274,6 @@ func jSONtoUsuario(user []byte) usuario { //desjoson
 	return usuarioDescifrado
 
 }
-
 func jSONtoPeticion(pet []byte) peticion { //desjoson
 
 	var peticionDescifrado peticion
@@ -286,6 +282,9 @@ func jSONtoPeticion(pet []byte) peticion { //desjoson
 	return peticionDescifrado
 }
 
+/////////////////////////////////////////////
+///////// TRABAJO CON Encriptacion	////////
+///////////////////////////////////////////
 func encriptar(datosPlanos []byte, key []byte) string {
 	plaintext := datosPlanos
 
