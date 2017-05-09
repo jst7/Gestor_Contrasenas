@@ -199,7 +199,7 @@ func comunicacion(enviar []byte) string {
 	n, _ := conn.Write(enviar)
 	conn.CloseWrite()
 	//Respuesta del servidor
-	println("respuesta:")
+	//println("respuesta:")
 	buf := make([]byte, 200)
 	n, _ = conn.Read(buf)
 

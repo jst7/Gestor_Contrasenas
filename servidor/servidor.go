@@ -126,10 +126,6 @@ func handleConnection(conn net.Conn) {
 		fmt.Println("ENTRO")
 		if recuperarSesion(pet) {
 			//"----------------\nSesión Iniciada\n----------------"
-			var usuarioComprobar usuario
-
-			usuarioComprobar.Name = pet.Usuario.Name
-			usuarioComprobar.Contraseña = pet.Usuario.Contraseña
 
 			res := respuesta{"Correcto", galleta.Oreo, "string", []byte("Sesion iniciada")} //falta meter la cookie
 			resp = respuestaToJSON(res)
