@@ -203,11 +203,11 @@ func comunicacion(enviar []byte) string {
 	buf := make([]byte, 200)
 	n, _ = conn.Read(buf)
 
-	println(string(buf[:n]))
+	//println(string(buf[:n]))
 
 	//var pet = jSONtoPeticion(buf[:n])
 	var res = jSONtoRespuesta(buf[:n])
-	println(res.Cookie)
+	println(string(res.Cuerpo[:]))
 	//println(pet.Cookie)
 
 	return string(buf[:n])
