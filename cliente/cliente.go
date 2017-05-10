@@ -11,6 +11,9 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"strings"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 /////////////////////////////////////
@@ -18,9 +21,8 @@ import (
 ///////////////////////////////////
 
 type usuario struct {
-	Name       string   `json:"nombre"`
-	Contraseña string   `json:"contraseña"`
-	Cuentas    []cuenta `json:"cuentas"` //Para almacenar mas de una cuenta
+	Name    string   `json:"nombre"`
+	Cuentas []cuenta `json:"cuentas"` //Para almacenar mas de una cuenta
 }
 
 type cuenta struct {
@@ -38,7 +40,7 @@ type respuesta struct {
 	Estado     string `json:"estado"`
 	Cookie     string `json:"cookie"`     //o token segun lo que implemente fran
 	TipoCuerpo string `json:"tipocuerpo"` //tipo de dato del cuerpo
-	Cuerpo     []byte `json:"respuesta"`
+	Cuerpo     string `json:"respuesta"`
 }
 
 /**
@@ -144,7 +146,7 @@ func menuComunicacion() int {
 /////////////////////////////////////////////
 ///////// TRABAJO CON USURIO	////////////
 ///////////////////////////////////////////
-func añadirCuentaAUsuario(user usuario) usuario {
+func añadirCuentaAUsuario(user usuario) usuario { //revisar problema al quitar la contraseña del usuario
 
 	//Datos de cuenta
 	var usuarioNombre string
@@ -161,7 +163,7 @@ func añadirCuentaAUsuario(user usuario) usuario {
 	n := cuenta{usuarioNombre, contraseña, servicio}
 	contes = append(user.Cuentas, n)
 
-	UsuarioModificado := usuario{user.Name, user.Contraseña, contes}
+	UsuarioModificado := usuario{user.Name, contes}
 
 	return UsuarioModificado
 }
@@ -208,8 +210,24 @@ func crearUsuario() {
 			fmt.Scanf("%s\n", &crear)
 		}
 	}
-	println("hola mi usuario es: " + encriptar([]byte(nombre), key))
-	user := usuario{nombre, encriptar([]byte(contraseñaUsuario), key), contes}
+
+	//
+	//HASH USUARIO CONTRASEÑA
+	//
+	password := []byte(nombre + contraseñaUsuario)
+	// Hashing the password with the default cost of 10
+	hashedPassword, _ := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+
+	for strings.Contains(string(hashedPassword), "/") { //Lo realizamos para que no genere con / ya que a la hora de directorios da problemas
+		hashedPassword, _ = bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+	}
+	//fmt.Println(string(hashedPassword))
+	nombre = string(hashedPassword)
+	//
+	//HASH USUARIO CONTRASEÑA
+	//
+
+	user := usuario{nombre, contes}
 	pet := peticion{"crearUsuario", "null", user, nil}
 	var peti = peticionToJSON(pet)
 	comunicacion(peti)
@@ -236,14 +254,15 @@ func pedirclave() bool {
 	fmt.Scanf("%s\n", &contraseña)
 
 	//key del usuario
-	var key []byte
-	key = obtenerkeyUsuario(contraseña)
+	//var key []byte
+	//key = obtenerkeyUsuario(contraseña)
 
-	println("hola mi usuario es: " + encriptar([]byte(nombre), key))
-	user := usuario{nombre, contraseña, nil}
+	user := usuario{nombre + contraseña, nil}
 	pet := peticion{"sesion", "null", user, nil}
 	var peti = peticionToJSON(pet)
-	if comunicacion(peti) == "sesIniciada" { //"----------------\nSesión Iniciada\n----------------" {
+	var comunicacion = comunicacion(peti)
+	var respuesta = jSONtoRespuesta([]byte(comunicacion))
+	if respuesta.Estado == "Correcto" { //"----------------\nSesión Iniciada\n----------------" {
 		return true
 	}
 
@@ -271,6 +290,7 @@ func peticionToJSON(pet peticion) []byte {
 	fmt.Printf("%s\n", resultado)
 	return resultado
 }
+
 func jSONtoUsuario(user []byte) usuario { //desjoson
 
 	var usuarioDescifrado usuario
