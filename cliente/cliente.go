@@ -208,7 +208,7 @@ func crearUsuario() {
 			fmt.Scanf("%s\n", &crear)
 		}
 	}
-
+	println("hola mi usuario es: " + encriptar([]byte(nombre), key))
 	user := usuario{nombre, encriptar([]byte(contraseñaUsuario), key), contes}
 	pet := peticion{"crearUsuario", "null", user, nil}
 	var peti = peticionToJSON(pet)
@@ -235,6 +235,11 @@ func pedirclave() bool {
 	println("Introduce tu contraseña:")
 	fmt.Scanf("%s\n", &contraseña)
 
+	//key del usuario
+	var key []byte
+	key = obtenerkeyUsuario(contraseña)
+
+	println("hola mi usuario es: " + encriptar([]byte(nombre), key))
 	user := usuario{nombre, contraseña, nil}
 	pet := peticion{"sesion", "null", user, nil}
 	var peti = peticionToJSON(pet)
