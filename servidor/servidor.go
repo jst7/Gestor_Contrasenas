@@ -6,12 +6,10 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net"
 	"os"
-	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -22,13 +20,11 @@ import (
 ///////////////////////////////////
 
 type usuarioBD struct {
-	Name       string `json:"nombre"`
-	Contraseña string `json:"contraseña"`
+	Name string `json:"nombre"`
 }
 type usuario struct {
-	Name       string   `json:"nombre"`
-	Contraseña string   `json:"Contraseña"`
-	Cuentas    []cuenta `json:"cuentas"`
+	Name    string   `json:"nombre"`
+	Cuentas []cuenta `json:"cuentas"`
 }
 
 type cuenta struct {
@@ -54,7 +50,7 @@ type respuesta struct {
 	Estado     string `json:"estado"`
 	Cookie     string `json:"cookie"`     //o token segun lo que implemente fran
 	TipoCuerpo string `json:"tipocuerpo"` //tipo de dato del cuerpo
-	Cuerpo     []byte `json:"respuesta"`
+	Cuerpo     string `json:"respuesta"`
 }
 
 var galleta cookie
@@ -112,12 +108,12 @@ func handleConnection(conn net.Conn) {
 		if creacionUsuarioPorPeticion(pet) {
 			// "----------------\nUsuario Creado\n----------------"
 
-			res := respuesta{"Correcto", galleta.Oreo, "string", []byte("Usuario creado correctamente")} //falta meter la cookie
+			res := respuesta{"Correcto", galleta.Oreo, "string", "Usuario creado correctamente"} //falta meter la cookie
 			resp = respuestaToJSON(res)
 
 		} else {
 			// "----------------\nUsuario ya Existente\n----------------"
-			res := respuesta{"Incorrecto", galleta.Oreo, "string", []byte("Usuario no creado, ya existe un usuario")}
+			res := respuesta{"Incorrecto", galleta.Oreo, "string", "Usuario no creado, ya existe un usuario"}
 			resp = respuestaToJSON(res)
 		}
 
@@ -126,25 +122,25 @@ func handleConnection(conn net.Conn) {
 		if recuperarSesion(pet) {
 			//"----------------\nSesión Iniciada\n----------------"
 
-			res := respuesta{"Correcto", galleta.Oreo, "string", []byte("log completo")} //falta meter la cookie
+			res := respuesta{"Correcto", galleta.Oreo, "string", "log completo"} //falta meter la cookie
 			resp = respuestaToJSON(res)
 
 		} else {
 			//"----------------\nUsuario Incorrecto\n----------------"
-			res := respuesta{"Incorrecto", galleta.Oreo, "string", []byte("No se ha podido iniciar sesión")}
+			res := respuesta{"Incorrecto", galleta.Oreo, "string", "No se ha podido iniciar sesión"}
 			resp = respuestaToJSON(res)
 		}
 
 	case "cuentas":
 
 		//fmt.Println("Cuentas")
-		res := respuesta{"Correcto", galleta.Oreo, "string", []byte("Cuentas son las siguientes")} //falta meter la cookie
+		res := respuesta{"Correcto", galleta.Oreo, "string", "Cuentas son las siguientes"} //falta meter la cookie
 		resp = respuestaToJSON(res)
 
 	default:
 
 		//linea = "incorrecto"
-		res := respuesta{"Incorrecto", galleta.Oreo, "string", []byte("Ha ocurrido un error")} //falta meter la cookie
+		res := respuesta{"Incorrecto", galleta.Oreo, "string", "Ha ocurrido un error"} //falta meter la cookie
 		resp = respuestaToJSON(res)
 	}
 
@@ -197,7 +193,6 @@ func recuperarSesion(pet peticion) bool {
 	var usuarioComprobar usuarioBD
 
 	usuarioComprobar.Name = pet.Usuario.Name
-	usuarioComprobar.Contraseña = pet.Usuario.Contraseña
 
 	if iniciarSesion(usuarioComprobar) {
 		return true
@@ -211,7 +206,7 @@ func iniciarSesion(usuario usuarioBD) bool {
 
 	var entra = false
 	for _, obj := range listaUSR {
-		print(obj.Name + " " + usuario.Name)
+		//print(obj.Name + " " + usuario.Name)
 		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(usuario.Name))
 		if err == nil {
 			setCookie(tamCookie)
@@ -227,22 +222,13 @@ func creacionUsuarioPorPeticion(pet peticion) bool {
 	var usuarios = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
 	var usuarioNuevo usuarioBD
 	usuarioNuevo.Name = pet.Usuario.Name
-	usuarioNuevo.Contraseña = pet.Usuario.Contraseña
-	println("AQUI " + pet.Usuario.Name)
-	println(pet.Usuario.Contraseña)
+	//println("AQUI " + pet.Usuario.Name)
 
 	if !comprobarExistenciaUSR(usuarios, usuarioNuevo) {
-		println("ENTRA")
+		//println("ENTRA")
 		var nombre string
-		password := []byte(pet.Usuario.Name)
-		// Hashing the password with the default cost of 10
-		hashedPassword, _ := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
 
-		for strings.Contains(string(hashedPassword), "/") { //Lo realizamos para que no genere con / ya que a la hora de directorios da problemas
-			hashedPassword, _ = bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
-		}
-		//fmt.Println(string(hashedPassword))
-		nombre = string(hashedPassword)
+		nombre = pet.Usuario.Name
 
 		deleteFile("usuarios.json")
 		createFile("usuarios.json")
@@ -274,13 +260,13 @@ func comprobarExistenciaUSR(listaUSR []usuarioBD, usuario usuarioBD) bool {
 	for _, obj := range listaUSR {
 		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(usuario.Name))
 		if err == nil {
-			fmt.Println("EXISTE EL USUARIO SOLICITADO")
+			//fmt.Println("EXISTE EL USUARIO SOLICITADO")
 			existe = true
 		}
 	}
 	return existe
 }
-func DevolvercuentasUsuario(pet peticion) []byte {
+func devolvercuentasUsuario(pet peticion) []byte {
 	return leerArchivo(pet.Usuario.Name)
 }
 
