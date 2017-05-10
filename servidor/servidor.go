@@ -137,9 +137,11 @@ func handleConnection(conn net.Conn) {
 
 	case "cuentas":
 
-		//fmt.Println("Cuentas")
-		res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", "Cuentas son las siguientes"} //falta meter la cookie
-		resp = respuestaToJSON(res)
+		if comprobarCookieValida(pet) {
+			//fmt.Println("Cuentas")
+			res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", "Cuentas son las siguientes"} //falta meter la cookie
+			resp = respuestaToJSON(res)
+		}
 
 	default:
 
@@ -187,6 +189,11 @@ func getCookieUsuarios(usuario string) cookie {
 
 	var vacio cookie
 	return vacio
+}
+
+func comprobarCookieValida(pet peticion) bool {
+	//realizar para trabajar con cookies y establecer el usuario
+	return true
 }
 
 //compara si la hora actual es anterior que la del expire de la cookie pasada por parametro
