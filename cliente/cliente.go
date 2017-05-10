@@ -11,7 +11,9 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"strconv"
 	"strings"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -43,6 +45,13 @@ type respuesta struct {
 	Cuerpo     string `json:"respuesta"`
 }
 
+type cookieIniciado struct {
+	Valor string `json:"valor"`
+	Hora  int    `json:"hora"`
+}
+
+var sesionUsuario cookieIniciado
+
 /**
 Todos las "_" se pueden sustituir por "err" y añadir el codigo:
 	if err != nil {
@@ -56,6 +65,7 @@ Todos las "_" se pueden sustituir por "err" y añadir el codigo:
 
 func main() {
 	var op int
+
 	//key := []byte("example key 1234")
 	op = 0
 	var dentro int
@@ -75,6 +85,8 @@ func main() {
 
 					} else if dentro == 3 { //Modificar una cuenta
 
+					} else if dentro == 5 { //Modificar una cuenta
+						fmt.Println(sesionUsuario)
 					} else { //Cerrar sesión
 
 					}
@@ -125,8 +137,8 @@ func comunicacion(enviar []byte) string {
 	//println(string(buf[:n]))
 
 	//var pet = jSONtoPeticion(buf[:n])
-	var res = jSONtoRespuesta(buf[:n])
-	println(string(res.Cuerpo[:]))
+	//var res = jSONtoRespuesta(buf[:n])
+	//println(string(res.Cuerpo[:]))
 	//println(pet.Cookie)
 
 	return string(buf[:n])
@@ -136,6 +148,7 @@ func menuComunicacion() int {
 	println("2. Eliminar cuenta")
 	println("3. Modificar cuenta")
 	println("4. Cerrar Sesión")
+	println("5. Mostrar cookie")
 
 	var op int
 	fmt.Scanf("%d\n", &op)
@@ -263,6 +276,14 @@ func pedirclave() bool {
 	var comunicacion = comunicacion(peti)
 	var respuesta = jSONtoRespuesta([]byte(comunicacion))
 	if respuesta.Estado == "Correcto" { //"----------------\nSesión Iniciada\n----------------" {
+		fmt.Println("--------------------------------------------------")
+		t := time.Now()
+		var stringHora = string(t.Format("20060102150405"))
+		enteroHora, _ := strconv.Atoi(stringHora)
+		//SESIÓN
+		sesionUsuario.Hora = enteroHora
+		sesionUsuario.Valor = respuesta.Cookie
+
 		return true
 	}
 
@@ -282,12 +303,12 @@ func jSONtoRespuesta(resp []byte) respuesta { //desjoson
 func usuarioToJSON(user usuario) []byte { //Crear el json
 
 	resultado, _ := json.Marshal(user)
-	fmt.Printf("%s\n", resultado)
+	//fmt.Printf("%s\n", resultado)
 	return resultado
 }
 func peticionToJSON(pet peticion) []byte {
 	resultado, _ := json.Marshal(pet)
-	fmt.Printf("%s\n", resultado)
+	//fmt.Printf("%s\n", resultado)
 	return resultado
 }
 

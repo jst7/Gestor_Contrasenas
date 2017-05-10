@@ -6,10 +6,12 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net"
 	"os"
+	"strconv"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -36,8 +38,9 @@ type cuenta struct {
 }
 
 type cookie struct {
-	Oreo   string    `json:"galleta"`
-	Expira time.Time `json:"expira"`
+	Usuario string `json:"usuario"`
+	Oreo    string `json:"galleta"`
+	Expira  int    `json:"expira"`
 }
 
 type peticion struct {
@@ -53,9 +56,10 @@ type respuesta struct {
 	Cuerpo     string `json:"respuesta"`
 }
 
-var galleta cookie
+var listaCookies []cookie
 
 var tamCookie = 50
+var expira = 180
 
 /////////////////////////////////////
 /////////	Funciones		////////
@@ -108,12 +112,12 @@ func handleConnection(conn net.Conn) {
 		if creacionUsuarioPorPeticion(pet) {
 			// "----------------\nUsuario Creado\n----------------"
 
-			res := respuesta{"Correcto", galleta.Oreo, "string", "Usuario creado correctamente"} //falta meter la cookie
+			res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", "Usuario creado correctamente"} //falta meter la cookie
 			resp = respuestaToJSON(res)
 
 		} else {
 			// "----------------\nUsuario ya Existente\n----------------"
-			res := respuesta{"Incorrecto", galleta.Oreo, "string", "Usuario no creado, ya existe un usuario"}
+			res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", "Usuario no creado, ya existe un usuario"}
 			resp = respuestaToJSON(res)
 		}
 
@@ -121,26 +125,26 @@ func handleConnection(conn net.Conn) {
 
 		if recuperarSesion(pet) {
 			//"----------------\nSesión Iniciada\n----------------"
-
-			res := respuesta{"Correcto", galleta.Oreo, "string", "log completo"} //falta meter la cookie
+			fmt.Println(listaCookies)
+			res := respuesta{"Correcto", getCookieUsuarios(pet.Usuario.Name).Oreo, "string", "log completo"} //falta meter la cookie
 			resp = respuestaToJSON(res)
 
 		} else {
 			//"----------------\nUsuario Incorrecto\n----------------"
-			res := respuesta{"Incorrecto", galleta.Oreo, "string", "No se ha podido iniciar sesión"}
+			res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", "No se ha podido iniciar sesión"}
 			resp = respuestaToJSON(res)
 		}
 
 	case "cuentas":
 
 		//fmt.Println("Cuentas")
-		res := respuesta{"Correcto", galleta.Oreo, "string", "Cuentas son las siguientes"} //falta meter la cookie
+		res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", "Cuentas son las siguientes"} //falta meter la cookie
 		resp = respuestaToJSON(res)
 
 	default:
 
 		//linea = "incorrecto"
-		res := respuesta{"Incorrecto", galleta.Oreo, "string", "Ha ocurrido un error"} //falta meter la cookie
+		res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", "Ha ocurrido un error"} //falta meter la cookie
 		resp = respuestaToJSON(res)
 	}
 
@@ -153,30 +157,45 @@ func handleConnection(conn net.Conn) {
 ///////////	 TRABAJO CON COOKIES	////////
 ///////////////////////////////////////////
 //crea la cookie para el usuario
-func setCookie(n int) {
+func setCookie(n int) string {
 	token, err := GenerateRandomString(n)
 	if err != nil {
 		// Serve an appropriately vague error to the
 		// user, but log the details internally.
 	}
-	galleta = cookie{Oreo: token, Expira: time.Now().Add(60 * time.Second)}
 	//println(time.Now().String())
-
+	return token
 }
 
-//devuelve la cookie con el nombre de usuario insertado
-func getCookie() cookie {
-	return galleta
+//devuelve la Cookie del usuario
+func getCookieUsuarios(usuario string) cookie {
+	var userHash string
+
+	var usuarios = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
+	for _, obj := range usuarios {
+		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(usuario))
+		if err == nil {
+			userHash = obj.Name
+		}
+	}
+
+	for _, obj := range listaCookies {
+		if obj.Usuario == userHash {
+			return obj
+		}
+	}
+
+	var vacio cookie
+	return vacio
 }
 
 //compara si la hora actual es anterior que la del expire de la cookie pasada por parametro
 //si devuelve true es porque la sesion puede seguir activa, si devuelve false no
-func statusCookie(token string) bool {
+func horaCookie(peticion int, caduca int) bool {
+
 	estado := false
-	if galleta.Oreo == token {
-		if time.Now().Before(galleta.Expira) {
-			estado = true
-		}
+	if (peticion - caduca) < expira {
+		estado = true
 	}
 
 	return estado
@@ -195,6 +214,7 @@ func recuperarSesion(pet peticion) bool {
 	usuarioComprobar.Name = pet.Usuario.Name
 
 	if iniciarSesion(usuarioComprobar) {
+
 		return true
 	}
 
@@ -209,7 +229,14 @@ func iniciarSesion(usuario usuarioBD) bool {
 		//print(obj.Name + " " + usuario.Name)
 		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(usuario.Name))
 		if err == nil {
-			setCookie(tamCookie)
+			//hacemos la cookie
+			t := time.Now()
+			var stringHora = string(t.Format("20060102150405"))
+			enteroHora, _ := strconv.Atoi(stringHora)
+
+			n := cookie{obj.Name, setCookie(tamCookie), enteroHora}
+			listaCookies = append(listaCookies, n)
+
 			entra = true
 			println("hola entro")
 		}
@@ -359,7 +386,7 @@ func jSONtoUsuariosBD(usuariosDataFile []byte) []usuarioBD { //desjoson
 	return usuariosDescifrado
 }
 
-func jSONtoCuentas() []cuenta {
+func jSONtoCuentas(galleta cookie) []cuenta {
 	var listadeCuentas []cuenta
 	json.Unmarshal([]byte(galleta.Oreo), listadeCuentas)
 
