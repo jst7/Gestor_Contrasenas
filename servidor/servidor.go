@@ -99,11 +99,11 @@ func handleConnection(conn net.Conn) {
 
 	var resp []byte
 
-	var linea = "incorrecto"
+	//var linea = "incorrecto"
 	msg, _ := r.ReadString('\n')
 
-	println("Mensaje recibido:")
-	println(msg)
+	//println("Mensaje recibido:")
+	//println(msg)
 
 	var pet = jSONtoPeticion([]byte(msg))
 
@@ -126,7 +126,7 @@ func handleConnection(conn net.Conn) {
 		if recuperarSesion(pet) {
 			//"----------------\nSesión Iniciada\n----------------"
 
-			res := respuesta{"Correcto", galleta.Oreo, "string", DevolvercuentasUsuario(pet)} //falta meter la cookie
+			res := respuesta{"Correcto", galleta.Oreo, "string", []byte("log completo")} //falta meter la cookie
 			resp = respuestaToJSON(res)
 
 		} else {
@@ -137,18 +137,18 @@ func handleConnection(conn net.Conn) {
 
 	case "cuentas":
 
-		fmt.Println("Cuentas")
+		//fmt.Println("Cuentas")
 		res := respuesta{"Correcto", galleta.Oreo, "string", []byte("Cuentas son las siguientes")} //falta meter la cookie
 		resp = respuestaToJSON(res)
 
 	default:
 
-		linea = "incorrecto"
+		//linea = "incorrecto"
 		res := respuesta{"Incorrecto", galleta.Oreo, "string", []byte("Ha ocurrido un error")} //falta meter la cookie
 		resp = respuestaToJSON(res)
 	}
 
-	println(linea)
+	//println(linea)
 	conn.Write(resp)
 
 }
@@ -164,7 +164,7 @@ func setCookie(n int) {
 		// user, but log the details internally.
 	}
 	galleta = cookie{Oreo: token, Expira: time.Now().Add(60 * time.Second)}
-	println(time.Now().String())
+	//println(time.Now().String())
 
 }
 
@@ -211,12 +211,12 @@ func iniciarSesion(usuario usuarioBD) bool {
 
 	var entra = false
 	for _, obj := range listaUSR {
+		print(obj.Name + " " + usuario.Name)
 		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(usuario.Name))
 		if err == nil {
-			if strings.EqualFold(usuario.Contraseña, obj.Contraseña) {
-				setCookie(tamCookie)
-				entra = true
-			}
+			setCookie(tamCookie)
+			entra = true
+			println("hola entro")
 		}
 	}
 	return entra
@@ -228,9 +228,11 @@ func creacionUsuarioPorPeticion(pet peticion) bool {
 	var usuarioNuevo usuarioBD
 	usuarioNuevo.Name = pet.Usuario.Name
 	usuarioNuevo.Contraseña = pet.Usuario.Contraseña
+	println("AQUI " + pet.Usuario.Name)
+	println(pet.Usuario.Contraseña)
 
 	if !comprobarExistenciaUSR(usuarios, usuarioNuevo) {
-
+		println("ENTRA")
 		var nombre string
 		password := []byte(pet.Usuario.Name)
 		// Hashing the password with the default cost of 10
@@ -309,7 +311,7 @@ func createFile(filename string) {
 	if os.IsNotExist(err) {
 		var file, err = os.Create(filename)
 		if err != nil {
-			fmt.Println(err.Error())
+			//fmt.Println(err.Error())
 			os.Exit(0)
 		}
 		defer file.Close()
@@ -352,14 +354,14 @@ func jSONtoPeticion(pet []byte) peticion { //desjoson
 func cuentasToJSON(cuent []cuenta) []byte { //Crear el json
 
 	resultado, _ := json.Marshal(cuent)
-	fmt.Printf("%s\n", resultado)
+	//fmt.Printf("%s\n", resultado)
 	return resultado
 }
 
 func usuariosBDToJSON(usrs []usuarioBD) []byte { //Crear el json
 
 	resultado, _ := json.Marshal(usrs)
-	fmt.Printf("%s\n", resultado)
+	//fmt.Printf("%s\n", resultado)
 	return resultado
 }
 
@@ -381,13 +383,13 @@ func jSONtoCuentas() []cuenta {
 
 func peticionToJSON(pet peticion) []byte {
 	resultado, _ := json.Marshal(pet)
-	fmt.Printf("%s\n", resultado)
+	//fmt.Printf("%s\n", resultado)
 	return resultado
 }
 
 func respuestaToJSON(res respuesta) []byte {
 	resultado, _ := json.Marshal(res)
-	fmt.Printf("%s\n", resultado)
+	//fmt.Printf("%s\n", resultado)
 	return resultado
 }
 
