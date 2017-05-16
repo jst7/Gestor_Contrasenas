@@ -42,7 +42,7 @@ type respuesta struct {
 	Estado     string `json:"estado"`
 	Cookie     string `json:"cookie"`     //o token segun lo que implemente fran
 	TipoCuerpo string `json:"tipocuerpo"` //tipo de dato del cuerpo
-	Cuerpo     string `json:"respuesta"`
+	Cuerpo     []byte `json:"respuesta"`
 }
 
 type cookieIniciado struct {
