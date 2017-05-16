@@ -53,7 +53,7 @@ type respuesta struct {
 	Estado     string `json:"estado"`
 	Cookie     string `json:"cookie"`     //o token segun lo que implemente fran
 	TipoCuerpo string `json:"tipocuerpo"` //tipo de dato del cuerpo
-	Cuerpo     string `json:"respuesta"`
+	Cuerpo     []byte `json:"respuesta"`
 }
 
 var listaCookies []cookie
@@ -112,12 +112,12 @@ func handleConnection(conn net.Conn) {
 		if creacionUsuarioPorPeticion(pet) {
 			// "----------------\nUsuario Creado\n----------------"
 
-			res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", "Usuario creado correctamente"} //falta meter la cookie
+			res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", []byte("Usuario creado correctamente")} //falta meter la cookie
 			resp = respuestaToJSON(res)
 
 		} else {
 			// "----------------\nUsuario ya Existente\n----------------"
-			res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", "Usuario no creado, ya existe un usuario"}
+			res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", []byte("Usuario no creado, ya existe un usuario")}
 			resp = respuestaToJSON(res)
 		}
 
@@ -126,12 +126,12 @@ func handleConnection(conn net.Conn) {
 		if recuperarSesion(pet) {
 			//"----------------\nSesión Iniciada\n----------------"
 			fmt.Println(listaCookies)
-			res := respuesta{"Correcto", getCookieUsuarios(pet.Usuario.Name).Oreo, "string", "log completo"} //falta meter la cookie
+			res := respuesta{"Correcto", getCookieUsuarios(pet.Usuario.Name).Oreo, "string", []byte("log completo")} //falta meter la cookie
 			resp = respuestaToJSON(res)
 
 		} else {
 			//"----------------\nUsuario Incorrecto\n----------------"
-			res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", "No se ha podido iniciar sesión"}
+			res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", []byte("No se ha podido iniciar sesión")}
 			resp = respuestaToJSON(res)
 		}
 
@@ -139,14 +139,14 @@ func handleConnection(conn net.Conn) {
 
 		if comprobarCookieValida(pet) {
 			//fmt.Println("Cuentas")
-			res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", "Cuentas son las siguientes"} //falta meter la cookie
+			res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", []byte("Cuentas son las siguientes")} //falta meter la cookie
 			resp = respuestaToJSON(res)
 		}
 
 	default:
 
 		//linea = "incorrecto"
-		res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", "Ha ocurrido un error"} //falta meter la cookie
+		res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", []byte("Ha ocurrido un error")} //falta meter la cookie
 		resp = respuestaToJSON(res)
 	}
 
@@ -171,9 +171,10 @@ func setCookie(n int) string {
 
 //devuelve la Cookie del usuario
 func getCookieUsuarios(usuario string) cookie {
-	var userHash string
 
+	var userHash string
 	var usuarios = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
+
 	for _, obj := range usuarios {
 		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(usuario))
 		if err == nil {
