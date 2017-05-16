@@ -248,7 +248,27 @@ func obtenerkeyUsuario(contraseña string) []byte {
 		}
 	}
 }
+func borrarCuentaServicio() bool {
 
+	var respuesta = false
+	var cuenta string
+	var servicio string
+	var confirmacion string
+
+	println("Introduce la cuenta y el servicio a borrar")
+	print("Cuenta: ")
+	fmt.Scan("%s\n", cuenta)
+	print("Servicio: ")
+	fmt.Scan("%s\n", servicio)
+
+	print("Esta seguro de que desea borrar la cuenta " + cuenta + "del servicio " + servicio + "? SI/NO")
+	fmt.Scan("%s\n", confirmacion)
+
+	if confirmacion == "si" || confirmacion == "SI" {
+
+	}
+	return respuesta
+}
 func pedirclave() bool {
 	var nombre string
 	var contraseña string
