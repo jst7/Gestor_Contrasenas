@@ -121,26 +121,12 @@ func comunicacion(enviar []byte) string {
 		InsecureSkipVerify: true,
 	}
 
-	//Conexión al servidor con la configuracion del tls
 	conn, _ := tls.Dial("tcp", "localhost:443", conf)
-
 	defer conn.Close()
-
-	//Mensaje a enviar
 	n, _ := conn.Write(enviar)
 	conn.CloseWrite()
-	//Respuesta del servidor
-	//println("respuesta:")
 	buf := make([]byte, 200)
 	n, _ = conn.Read(buf)
-
-	//println(string(buf[:n]))
-
-	//var pet = jSONtoPeticion(buf[:n])
-	//var res = jSONtoRespuesta(buf[:n])
-	//println(string(res.Cuerpo[:]))
-	//println(pet.Cookie)
-
 	return string(buf[:n])
 }
 func menuComunicacion() int {
@@ -256,6 +242,7 @@ func obtenerkeyUsuario(contraseña string) []byte {
 		}
 	}
 }
+
 func pedirclave() bool {
 	var nombre string
 	var contraseña string
@@ -286,7 +273,7 @@ func pedirclave() bool {
 
 		return true
 	}
-
+	fmt.Println("Ha ocurrido un error: " + string(respuesta.Cuerpo))
 	return false
 }
 
