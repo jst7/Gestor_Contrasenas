@@ -129,7 +129,7 @@ func comunicacion(enviar []byte) string {
 	defer conn.Close()
 	n, _ := conn.Write(enviar)
 	conn.CloseWrite()
-	buf := make([]byte, 200)
+	buf := make([]byte, 400)
 	n, _ = conn.Read(buf)
 	return string(buf[:n])
 }
@@ -256,10 +256,6 @@ func borrarCuentaServicio() bool {
 	var cuentaname string
 	var servicio string
 	var confirmacion string
-<<<<<<< HEAD
-=======
-	var cuentaBorrar []cuenta
->>>>>>> base del cliente
 
 	println("Introduce la cuenta y el servicio a borrar")
 	fmt.Print("Cuenta: ")
@@ -271,19 +267,18 @@ func borrarCuentaServicio() bool {
 	fmt.Scanf("%s\n", &confirmacion)
 
 	if confirmacion == "si" || confirmacion == "SI" {
-<<<<<<< HEAD
 
 		pet := peticion{"delcuentas", "null", UsuarioConectado, nil, ""}
-=======
-		cuentaBorrar = append(cuentaBorrar, cuenta{encriptar([]byte(cuentaname), keyuser), "nil", encriptar([]byte(servicio), keyuser)})
-		pet := peticion{"delcuentas", "null", UsuarioConectado, cuentaBorrar}
->>>>>>> base del cliente
 
 		var peti = peticionToJSON(pet)
 		var comunicacion = comunicacion(peti)
 		var respuesta = jSONtoRespuesta([]byte(comunicacion))
+		println(string(respuesta.Cuerpo))
+		cuentasRespuesta := jSONtoCuentas(respuesta.Cuerpo)
+		for _, obj := range cuentasRespuesta {
+			println(obj.Usuario)
+		}
 
-		println(respuesta.Cuerpo)
 	}
 	return respuesta
 }
@@ -367,6 +362,13 @@ func jSONtoPeticion(pet []byte) peticion { //desjoson
 	json.Unmarshal(pet, &peticionDescifrado)
 
 	return peticionDescifrado
+}
+func jSONtoCuentas(datos []byte) []cuenta {
+	var listadeCuentas []cuenta
+	json.Unmarshal(datos, &listadeCuentas)
+
+	return listadeCuentas
+
 }
 
 /////////////////////////////////////////////

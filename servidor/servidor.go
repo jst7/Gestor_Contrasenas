@@ -168,10 +168,12 @@ func handleConnection(conn net.Conn) {
 		}
 
 	case "delcuentas":
-		if deleteCuentaServicio(pet) {
-			res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", []byte("Se ha borrado la cuenta")} //falta meter la cookie
-			resp = respuestaToJSON(res)
-		}
+		var stin = devolvercuentasUsuario(pet)
+		println(stin)
+		res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", stin} //falta meter la cookie
+		resp = respuestaToJSON(res)
+		println(string(resp))
+
 	default:
 
 		//linea = "incorrecto"
@@ -242,21 +244,44 @@ func horaCookie(peticion int, caduca int) bool {
 /////////////////////////////////////////////
 //////// TRABAJO CON CUENTAS	////////////
 ///////////////////////////////////////////
+func devolvercuentasUsuario(pet peticion) []byte {
+	var listaUSR = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
 
+	for _, obj := range listaUSR {
+		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(pet.Usuario.Name))
+
+		if err == nil {
+
+			return leerArchivo(obj.Name + ".json")
+		}
+	}
+	return []byte("error al ler archivo")
+}
 func deleteCuentaServicio(pet peticion) bool {
-
+	var nuevas []cuenta
 	var respuesta = false
 	var listaUSR = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
 	for _, obj := range listaUSR {
+
 		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(pet.Usuario.Name))
 		if err == nil {
 			var data = leerArchivo(obj.Name + ".json")
 			var cuentas = jSONtoCuentas(data)
 			respuesta = true
-			for _, obj := range cuentas {
-				println(obj.Usuario)
-			}
 
+			for _, obj := range cuentas {
+				println("Cuenta for: " + obj.Usuario)
+				println("Cuenta peticion: " + pet.Cuentas[0].Usuario)
+				if obj.Usuario != pet.Cuentas[0].Usuario || obj.Servicio != pet.Cuentas[0].Servicio {
+					nuevas = append(nuevas, obj)
+					println(pet.Cuentas[0].Usuario)
+				}
+				println("cuenta borrada: " + pet.Cuentas[0].Usuario)
+			}
+			deleteFile(obj.Name + ".json")
+			createFile(obj.Name + ".json")
+
+			escribirArchivoClientes(obj.Name+".json", string(cuentasToJSON(nuevas)))
 		}
 	}
 	return respuesta
@@ -380,9 +405,6 @@ func comprobarExistenciaUSR(listaUSR []usuarioBD, usuario usuarioBD) bool {
 		}
 	}
 	return existe
-}
-func devolvercuentasUsuario(pet peticion) []byte {
-	return leerArchivo(pet.Usuario.Name)
 }
 
 /////////////////////////////////////////////
