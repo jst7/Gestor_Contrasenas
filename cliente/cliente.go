@@ -129,8 +129,9 @@ func comunicacion(enviar []byte) string {
 	defer conn.Close()
 	n, _ := conn.Write(enviar)
 	conn.CloseWrite()
-	buf := make([]byte, 400)
+	buf := make([]byte, 4000)
 	n, _ = conn.Read(buf)
+	//println(string(buf[:n]))
 	return string(buf[:n])
 }
 func menuComunicacion() int {
@@ -276,7 +277,7 @@ func borrarCuentaServicio() bool {
 		println(string(respuesta.Cuerpo))
 		cuentasRespuesta := jSONtoCuentas(respuesta.Cuerpo)
 		for _, obj := range cuentasRespuesta {
-			println(obj.Usuario)
+			println(desencriptar(obj.Usuario, keyuser))
 		}
 
 	}
