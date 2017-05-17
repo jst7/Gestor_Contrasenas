@@ -53,6 +53,7 @@ type cookieIniciado struct {
 }
 
 var sesionUsuario cookieIniciado
+var UsuarioConectado usuario
 
 /**
 Todos las "_" se pueden sustituir por "err" y añadir el codigo:
@@ -84,7 +85,7 @@ func main() {
 					if dentro == 1 { //Listar cuentas guardadas
 
 					} else if dentro == 2 { //Eliminar una cuenta concreta
-
+						borrarCuentaServicio()
 					} else if dentro == 3 { //Modificar una cuenta
 
 					} else if dentro == 5 { //Modificar una cuenta
@@ -256,16 +257,23 @@ func borrarCuentaServicio() bool {
 	var confirmacion string
 
 	println("Introduce la cuenta y el servicio a borrar")
-	print("Cuenta: ")
-	fmt.Scan("%s\n", cuenta)
-	print("Servicio: ")
-	fmt.Scan("%s\n", servicio)
+	fmt.Print("Cuenta: ")
+	fmt.Scanf("%s\n", &cuenta)
+	fmt.Print("Servicio: ")
+	fmt.Scanf("%s\n", &servicio)
 
-	print("Esta seguro de que desea borrar la cuenta " + cuenta + "del servicio " + servicio + "? SI/NO")
-	fmt.Scan("%s\n", confirmacion)
+	println("Esta seguro de que desea borrar la cuenta " + cuenta + " del servicio " + servicio + "? SI/NO")
+	fmt.Scanf("%s\n", &confirmacion)
 
 	if confirmacion == "si" || confirmacion == "SI" {
 
+		pet := peticion{"delcuentas", "null", UsuarioConectado, nil, ""}
+
+		var peti = peticionToJSON(pet)
+		var comunicacion = comunicacion(peti)
+		var respuesta = jSONtoRespuesta([]byte(comunicacion))
+
+		println(respuesta.Cuerpo)
 	}
 	return respuesta
 }
@@ -297,8 +305,12 @@ func pedirclave() bool {
 		//SESIÓN
 		sesionUsuario.Hora = enteroHora
 		sesionUsuario.Valor = respuesta.Cookie
+
 		if claveCorreo(nombre + contraseña) {
 			fmt.Println("--------------------------------------------------")
+			UsuarioConectado = user
+			println(UsuarioConectado.Name)
+			return true
 			return true
 		} else {
 			return false

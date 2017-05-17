@@ -50,10 +50,11 @@ type cookie struct {
 }
 
 type peticion struct {
-	Tipo    string  `json:"tipo"`
-	Cookie  string  `json:"cookie"`
-	Usuario usuario `json:"usuario"`
-	Clave   string  `json:"clave"`
+	Tipo    string   `json:"tipo"`
+	Cookie  string   `json:"cookie"`
+	Usuario usuario  `json:"usuario"`
+	Clave   string   `json:"clave"`
+	Cuentas []cuenta `json:"cuenta"`
 }
 
 type respuesta struct {
@@ -158,7 +159,7 @@ func handleConnection(conn net.Conn) {
 			res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", []byte("No se ha podido iniciar sesión")}
 			resp = respuestaToJSON(res)
 		}
-	case "cuentas":
+	case "getcuentas":
 
 		if comprobarCookieValida(pet) {
 			//fmt.Println("Cuentas")
@@ -166,6 +167,11 @@ func handleConnection(conn net.Conn) {
 			resp = respuestaToJSON(res)
 		}
 
+	case "delcuentas":
+		if deleteCuentaServicio(pet) {
+			res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", []byte("Se ha borrado la cuenta")} //falta meter la cookie
+			resp = respuestaToJSON(res)
+		}
 	default:
 
 		//linea = "incorrecto"
@@ -231,6 +237,29 @@ func horaCookie(peticion int, caduca int) bool {
 
 	return estado
 
+}
+
+/////////////////////////////////////////////
+//////// TRABAJO CON CUENTAS	////////////
+///////////////////////////////////////////
+
+func deleteCuentaServicio(pet peticion) bool {
+
+	var respuesta = false
+	var listaUSR = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
+	for _, obj := range listaUSR {
+		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(pet.Usuario.Name))
+		if err == nil {
+			var data = leerArchivo(obj.Name + ".json")
+			var cuentas = jSONtoCuentas(data)
+			respuesta = true
+			for _, obj := range cuentas {
+				println(obj.Usuario)
+			}
+
+		}
+	}
+	return respuesta
 }
 
 /////////////////////////////////////////////
@@ -452,9 +481,9 @@ func jSONtoUsuariosBD(usuariosDataFile []byte) []usuarioBD { //desjoson
 	return usuariosDescifrado
 }
 
-func jSONtoCuentas(galleta cookie) []cuenta {
+func jSONtoCuentas(datos []byte) []cuenta {
 	var listadeCuentas []cuenta
-	json.Unmarshal([]byte(galleta.Oreo), listadeCuentas)
+	json.Unmarshal(datos, &listadeCuentas)
 
 	return listadeCuentas
 
@@ -473,7 +502,7 @@ func respuestaToJSON(res respuesta) []byte {
 }
 
 /////////////////////////////////////////////
-///////////	 TRABAJO CON ECRIPTACION	////
+///////////	 TRABAJO CON ENCRIPTACION	////
 ///////////////////////////////////////////
 
 // GenerateRandomBytes returns securely generated random bytes.
