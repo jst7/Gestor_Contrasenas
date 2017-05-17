@@ -24,10 +24,12 @@ import (
 ///////////////////////////////////
 
 type usuarioBD struct {
-	Name string `json:"nombre"`
+	Name   string `json:"nombre"`
+	Correo string `json:"correo"`
 }
 type usuario struct {
 	Name    string   `json:"nombre"`
+	Correo  string   `json:"correo"`
 	Cuentas []cuenta `json:"cuentas"`
 }
 
@@ -129,6 +131,7 @@ func handleConnection(conn net.Conn) {
 			//"----------------\nSesión Iniciada\n----------------"
 			fmt.Println(listaCookies)
 			res := respuesta{"Correcto", getCookieUsuarios(pet.Usuario.Name).Oreo, "string", []byte("log completo")} //falta meter la cookie
+			email(recuperarCorreoUsuario(pet.Usuario.Name), "clave")
 			resp = respuestaToJSON(res)
 
 		} else {
@@ -137,6 +140,15 @@ func handleConnection(conn net.Conn) {
 			resp = respuestaToJSON(res)
 		}
 
+	case "autcorreo":
+
+		if recuperarSesionCorreo(pet) {
+			res := respuesta{"Correcto", getCookieUsuarios(pet.Usuario.Name).Oreo, "string", []byte("log completo con correo")} //falta meter la cookie
+			resp = respuestaToJSON(res)
+		} else {
+			res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", []byte("No se ha podido iniciar sesión")}
+			resp = respuestaToJSON(res)
+		}
 	case "cuentas":
 
 		if comprobarCookieValida(pet) {
@@ -231,6 +243,11 @@ func recuperarSesion(pet peticion) bool {
 	return false
 }
 
+func recuperarSesionCorreo(pet peticion) bool {
+
+	return true
+}
+
 func iniciarSesion(usuario usuarioBD) bool {
 	var listaUSR = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
 
@@ -259,6 +276,7 @@ func creacionUsuarioPorPeticion(pet peticion) bool {
 	var usuarios = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
 	var usuarioNuevo usuarioBD
 	usuarioNuevo.Name = pet.Usuario.Name
+	usuarioNuevo.Correo = pet.Usuario.Correo
 	//println("AQUI " + pet.Usuario.Name)
 
 	if !comprobarExistenciaUSR(usuarios, usuarioNuevo) {
@@ -542,4 +560,8 @@ func email(correo string, mensaje string) {
 	client.Quit()
 
 	log.Println("Mail sent successfully")
+}
+
+func recuperarCorreoUsuario(usuario string) string {
+	return "jorge.segovia.tormo@gmail.com"
 }

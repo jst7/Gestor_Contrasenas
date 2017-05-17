@@ -24,6 +24,7 @@ import (
 
 type usuario struct {
 	Name    string   `json:"nombre"`
+	Correo  string   `json:"correo"`
 	Cuentas []cuenta `json:"cuentas"` //Para almacenar mas de una cuenta
 }
 
@@ -37,6 +38,7 @@ type peticion struct {
 	Cookie  string   `json:"cookie"`
 	Usuario usuario  `json:"usuario"`
 	Cuentas []cuenta `json:"cuentas"`
+	Clave   string   `json:"clave"`
 }
 type respuesta struct {
 	Estado     string `json:"estado"`
@@ -162,13 +164,14 @@ func añadirCuentaAUsuario(user usuario) usuario { //revisar problema al quitar 
 	n := cuenta{usuarioNombre, contraseña, servicio}
 	contes = append(user.Cuentas, n)
 
-	UsuarioModificado := usuario{user.Name, contes}
+	UsuarioModificado := usuario{user.Name, user.Correo, contes}
 
 	return UsuarioModificado
 }
 func crearUsuario() {
 	//Datos de usuario
 	var nombre string
+	var correo string
 	var contraseñaUsuario string
 	var contes []cuenta
 
@@ -186,6 +189,9 @@ func crearUsuario() {
 
 	println("Contraseña")
 	fmt.Scanf("%s\n", &contraseñaUsuario)
+
+	println("Correo del usuario")
+	fmt.Scanf("%s\n", &correo)
 
 	//Añadir primera cuenta
 	println("¿Deseas añadir una cuenta?")
@@ -226,8 +232,8 @@ func crearUsuario() {
 	//HASH USUARIO CONTRASEÑA
 	//
 
-	user := usuario{nombre, contes}
-	pet := peticion{"crearUsuario", "null", user, nil}
+	user := usuario{nombre, correo, contes}
+	pet := peticion{"crearUsuario", "null", user, nil, ""}
 	var peti = peticionToJSON(pet)
 	comunicacion(peti)
 }
@@ -257,21 +263,27 @@ func pedirclave() bool {
 	//var key []byte
 	//key = obtenerkeyUsuario(contraseña)
 
-	user := usuario{nombre + contraseña, nil}
-	pet := peticion{"sesion", "null", user, nil}
+	user := usuario{nombre + contraseña, "", nil}
+	pet := peticion{"sesion", "null", user, nil, ""}
 	var peti = peticionToJSON(pet)
 	var comunicacion = comunicacion(peti)
 	var respuesta = jSONtoRespuesta([]byte(comunicacion))
+
 	if respuesta.Estado == "Correcto" { //"----------------\nSesión Iniciada\n----------------" {
-		fmt.Println("--------------------------------------------------")
+
 		t := time.Now()
 		var stringHora = string(t.Format("20060102150405"))
 		enteroHora, _ := strconv.Atoi(stringHora)
 		//SESIÓN
 		sesionUsuario.Hora = enteroHora
 		sesionUsuario.Valor = respuesta.Cookie
+		if claveCorreo() {
+			fmt.Println("--------------------------------------------------")
+			return true
+		} else {
+			return false
+		}
 
-		return true
 	}
 	fmt.Println("Ha ocurrido un error: " + string(respuesta.Cuerpo))
 	return false
@@ -358,4 +370,23 @@ func desencriptar(datosEncriptados string, key []byte) string {
 	stream.XORKeyStream(ciphertext, ciphertext)
 
 	return fmt.Sprintf("%s", ciphertext)
+}
+
+func claveCorreo() bool {
+	var clave string
+	fmt.Print("Introduce la clave enviada a tu correo:")
+	fmt.Scanf("%s\n", &clave)
+
+	user := usuario{"@none", "", nil}
+	pet := peticion{"autcorreo", sesionUsuario.Valor, user, nil, clave}
+	var peti = peticionToJSON(pet)
+	var comunicacion = comunicacion(peti)
+	var respuesta = jSONtoRespuesta([]byte(comunicacion))
+
+	if respuesta.Estado == "Correcto" {
+		return true
+	} else {
+		return false
+	}
+
 }
