@@ -363,6 +363,13 @@ func escribirArchivoClientes(file string, data string) bool {
 	return escrito
 }
 
+func escribirLog(data string) bool {
+	var log = false
+	log = escribirArchivoClientes("log.txt", data)
+
+	return log
+}
+
 /////////////////////////////////////////////
 ///////////	 TRABAJO CON JSON	////////////
 ///////////////////////////////////////////
@@ -480,7 +487,7 @@ func email(correo string, mensaje string) {
 	mail := Mail{}
 	mail.senderId = "sdspoleo@gmail.com"
 	mail.toIds = []string{correo}
-	mail.subject = "This is the email subject"
+	mail.subject = "Autentificacion"
 	mail.body = mensaje
 
 	messageBody := mail.BuildMessage()
