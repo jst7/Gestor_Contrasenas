@@ -54,6 +54,7 @@ type cookieIniciado struct {
 
 var sesionUsuario cookieIniciado
 var UsuarioConectado usuario
+var keyuser []byte
 
 /**
 Todos las "_" se pueden sustituir por "err" y añadir el codigo:
@@ -201,7 +202,7 @@ func crearUsuario() {
 	//key del usuario
 	var key []byte
 	key = obtenerkeyUsuario(contraseñaUsuario)
-
+	keyuser = key
 	if crear == "si" {
 		for crear != "no" {
 			println("Usuario:")
@@ -252,22 +253,31 @@ func obtenerkeyUsuario(contraseña string) []byte {
 func borrarCuentaServicio() bool {
 
 	var respuesta = false
-	var cuenta string
+	var cuentaname string
 	var servicio string
 	var confirmacion string
+<<<<<<< HEAD
+=======
+	var cuentaBorrar []cuenta
+>>>>>>> base del cliente
 
 	println("Introduce la cuenta y el servicio a borrar")
 	fmt.Print("Cuenta: ")
-	fmt.Scanf("%s\n", &cuenta)
+	fmt.Scanf("%s\n", &cuentaname)
 	fmt.Print("Servicio: ")
 	fmt.Scanf("%s\n", &servicio)
 
-	println("Esta seguro de que desea borrar la cuenta " + cuenta + " del servicio " + servicio + "? SI/NO")
+	println("Esta seguro de que desea borrar la cuenta " + cuentaname + " del servicio " + servicio + "? SI/NO")
 	fmt.Scanf("%s\n", &confirmacion)
 
 	if confirmacion == "si" || confirmacion == "SI" {
+<<<<<<< HEAD
 
 		pet := peticion{"delcuentas", "null", UsuarioConectado, nil, ""}
+=======
+		cuentaBorrar = append(cuentaBorrar, cuenta{encriptar([]byte(cuentaname), keyuser), "nil", encriptar([]byte(servicio), keyuser)})
+		pet := peticion{"delcuentas", "null", UsuarioConectado, cuentaBorrar}
+>>>>>>> base del cliente
 
 		var peti = peticionToJSON(pet)
 		var comunicacion = comunicacion(peti)
@@ -289,7 +299,7 @@ func pedirclave() bool {
 
 	//key del usuario
 	//var key []byte
-	//key = obtenerkeyUsuario(contraseña)
+	keyuser = obtenerkeyUsuario(contraseña)
 
 	user := usuario{nombre + contraseña, "", nil}
 	pet := peticion{"sesion", "null", user, nil, ""}
