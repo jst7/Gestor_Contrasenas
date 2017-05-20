@@ -277,7 +277,7 @@ func pedirclave() bool {
 		//SESIÓN
 		sesionUsuario.Hora = enteroHora
 		sesionUsuario.Valor = respuesta.Cookie
-		if claveCorreo() {
+		if claveCorreo(nombre + contraseña) {
 			fmt.Println("--------------------------------------------------")
 			return true
 		} else {
@@ -372,12 +372,12 @@ func desencriptar(datosEncriptados string, key []byte) string {
 	return fmt.Sprintf("%s", ciphertext)
 }
 
-func claveCorreo() bool {
+func claveCorreo(nombre string) bool {
 	var clave string
 	fmt.Print("Introduce la clave enviada a tu correo:")
 	fmt.Scanf("%s\n", &clave)
 
-	user := usuario{"@none", "", nil}
+	user := usuario{nombre, "", nil}
 	pet := peticion{"autcorreo", sesionUsuario.Valor, user, nil, clave}
 	var peti = peticionToJSON(pet)
 	var comunicacion = comunicacion(peti)

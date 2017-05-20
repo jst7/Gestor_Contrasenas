@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	mrand "math/rand"
 	"net"
 	"net/smtp"
 	"os"
@@ -26,6 +27,7 @@ import (
 type usuarioBD struct {
 	Name   string `json:"nombre"`
 	Correo string `json:"correo"`
+	Clave  string `json:"clave"`
 }
 type usuario struct {
 	Name    string   `json:"nombre"`
@@ -51,6 +53,7 @@ type peticion struct {
 	Tipo    string  `json:"tipo"`
 	Cookie  string  `json:"cookie"`
 	Usuario usuario `json:"usuario"`
+	Clave   string  `json:"clave"`
 }
 
 type respuesta struct {
@@ -60,7 +63,13 @@ type respuesta struct {
 	Cuerpo     []byte `json:"respuesta"`
 }
 
+type correoValor struct {
+	Correo string `json:"correo"`
+	clave  string `json:"clave"`
+}
+
 var listaCookies []cookie
+var listaCorreoClave []correoValor
 
 var tamCookie = 50
 var expira = 180
@@ -131,7 +140,7 @@ func handleConnection(conn net.Conn) {
 			//"----------------\nSesión Iniciada\n----------------"
 			fmt.Println(listaCookies)
 			res := respuesta{"Correcto", getCookieUsuarios(pet.Usuario.Name).Oreo, "string", []byte("log completo")} //falta meter la cookie
-			email(recuperarCorreoUsuario(pet.Usuario.Name), "clave")
+			email(recuperarCorreoUsuario(pet.Usuario.Name), recuperarClave(recuperarCorreoUsuario(pet.Usuario.Name)))
 			resp = respuestaToJSON(res)
 
 		} else {
@@ -142,7 +151,7 @@ func handleConnection(conn net.Conn) {
 
 	case "autcorreo":
 
-		if recuperarSesionCorreo(pet) {
+		if recuperarSesionCorreo(recuperarCorreo(pet.Usuario), pet.Clave) {
 			res := respuesta{"Correcto", getCookieUsuarios(pet.Usuario.Name).Oreo, "string", []byte("log completo con correo")} //falta meter la cookie
 			resp = respuestaToJSON(res)
 		} else {
@@ -243,9 +252,31 @@ func recuperarSesion(pet peticion) bool {
 	return false
 }
 
-func recuperarSesionCorreo(pet peticion) bool {
+func recuperarSesionCorreo(correo string, clave string) bool {
 
-	return true
+	fmt.Println("Correo: " + correo)
+	fmt.Println("Clave: " + clave)
+	fmt.Println(listaCorreoClave)
+	for _, obj := range listaCorreoClave {
+		if obj.Correo == correo && obj.clave == clave {
+			return true
+		}
+	}
+
+	return false
+}
+
+func recuperarCorreo(user usuario) string {
+	var listaUSR = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
+
+	for _, obj := range listaUSR {
+		print("Comprobar sesion2: " + obj.Name + " " + user.Name)
+		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(user.Name))
+		if err == nil {
+			return obj.Correo
+		}
+	}
+	return ""
 }
 
 func iniciarSesion(usuario usuarioBD) bool {
@@ -253,7 +284,7 @@ func iniciarSesion(usuario usuarioBD) bool {
 
 	var entra = false
 	for _, obj := range listaUSR {
-		//print(obj.Name + " " + usuario.Name)
+		print("Comprobar sesion1: " + obj.Name + " " + usuario.Name)
 		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(usuario.Name))
 		if err == nil {
 			//hacemos la cookie
@@ -570,5 +601,30 @@ func email(correo string, mensaje string) {
 }
 
 func recuperarCorreoUsuario(usuario string) string {
-	return "jorge.segovia.tormo@gmail.com"
+	var listaUSR = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
+
+	for _, obj := range listaUSR {
+		//print(obj.Name + " " + usuario.Name)
+		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(usuario))
+		if err == nil {
+
+			key := mrand.Intn(9999)
+			valor := correoValor{obj.Correo, strconv.Itoa(key)}
+			listaCorreoClave = append(listaCorreoClave, valor)
+			return obj.Correo
+		}
+	}
+	return "sdspoleo@gmail.com"
+}
+
+func recuperarClave(correo string) string {
+
+	for _, obj := range listaCorreoClave {
+
+		if obj.Correo == correo {
+			return obj.clave
+		}
+	}
+	return "ERROR ️☹"
+
 }
