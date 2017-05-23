@@ -253,35 +253,47 @@ func obtenerkeyUsuario(contraseña string) []byte {
 }
 func borrarCuentaServicio() bool {
 
-	var respuesta = false
+	var resultado = true
 	var cuentaname string
 	var servicio string
-	var confirmacion string
 
-	println("Introduce la cuenta y el servicio a borrar")
-	fmt.Print("Cuenta: ")
+	var nuevaListaCuentas []cuenta
+	var listCuentasdisponbls []cuenta
+
+	//cuentaBorrar = append(cuentaBorrar, cuenta{encriptar([]byte(cuentaname), keyuser), "nil", encriptar([]byte(servicio), keyuser)})
+	pet := peticion{"delcuentas", "null", UsuarioConectado, nil, ""}
+
+	var peti = peticionToJSON(pet)
+	var comunicacion = comunicacion(peti)
+	var respuesta = jSONtoRespuesta([]byte(comunicacion))
+	//println(string(respuesta.Cuerpo))
+	cuentasRespuesta := jSONtoCuentas(respuesta.Cuerpo)
+	for _, obj := range cuentasRespuesta {
+		listCuentasdisponbls = append(listCuentasdisponbls, cuenta{desencriptar(obj.Usuario, keyuser), obj.Contraseña, desencriptar(obj.Servicio, keyuser)})
+		//println("nombre: " + obj.Usuario + "contraseña: " + obj.Contraseña + "servicio " + obj.Servicio)
+	}
+	menuBorrado(listCuentasdisponbls)
+	fmt.Print("Introduce cuenta a borrar: ")
 	fmt.Scanf("%s\n", &cuentaname)
-	fmt.Print("Servicio: ")
+	fmt.Print("Introduce servicio a borrar: ")
 	fmt.Scanf("%s\n", &servicio)
 
-	println("Esta seguro de que desea borrar la cuenta " + cuentaname + " del servicio " + servicio + "? SI/NO")
-	fmt.Scanf("%s\n", &confirmacion)
-
-	if confirmacion == "si" || confirmacion == "SI" {
-
-		pet := peticion{"delcuentas", "null", UsuarioConectado, nil, ""}
-
-		var peti = peticionToJSON(pet)
-		var comunicacion = comunicacion(peti)
-		var respuesta = jSONtoRespuesta([]byte(comunicacion))
-		println(string(respuesta.Cuerpo))
-		cuentasRespuesta := jSONtoCuentas(respuesta.Cuerpo)
-		for _, obj := range cuentasRespuesta {
-			println(desencriptar(obj.Usuario, keyuser))
+	for _, obj := range listCuentasdisponbls {
+		if obj.Usuario != cuentaname || obj.Servicio != servicio {
+			nuevaListaCuentas = append(nuevaListaCuentas, obj)
 		}
-
 	}
-	return respuesta
+	return resultado
+}
+
+func menuBorrado(cuents []cuenta) {
+	println("-----Seleccione la cuenta a borrar----")
+	println("--Usuario--			--Servicio--")
+
+	for _, obj := range cuents {
+		println(obj.Usuario + "				" + obj.Servicio)
+	}
+
 }
 func pedirclave() bool {
 	var nombre string
