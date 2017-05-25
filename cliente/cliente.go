@@ -286,20 +286,20 @@ func borrarCuentaServicio() bool {
 	UsuarioConectado.Cuentas = nuevaListaCuentas
 	peticionActu := peticion{"delcuentas", "null", UsuarioConectado, nuevaListaCuentas, ""}
 
-	println(peticionActu.Cuentas)
 	var petiActu = peticionToJSON(peticionActu)
 	var comunicacionActu = comunicacion(petiActu)
 	var respuestaActu = jSONtoRespuesta([]byte(comunicacionActu))
 
 	if string(respuestaActu.Cuerpo) == "Cuenta Borrada" {
 		resultado = true
+		println("Borrado realizado correctamente")
 	}
 	return resultado
 }
 
 func menuBorrado(cuents []cuenta) {
 	println("-----Seleccione la cuenta a borrar----")
-	println("--Usuario--			--Servicio--")
+	println("--Usuario---------------Servicio--")
 
 	for _, obj := range cuents {
 		println(obj.Usuario + "				" + obj.Servicio)
