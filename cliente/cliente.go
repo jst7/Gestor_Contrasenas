@@ -53,6 +53,8 @@ type cookieIniciado struct {
 }
 
 var sesionUsuario cookieIniciado
+var UsuarioConectado usuario
+var keyuser []byte
 
 /**
 Todos las "_" se pueden sustituir por "err" y añadir el codigo:
@@ -84,7 +86,7 @@ func main() {
 					if dentro == 1 { //Listar cuentas guardadas
 
 					} else if dentro == 2 { //Eliminar una cuenta concreta
-
+						borrarCuentaServicio()
 					} else if dentro == 3 { //Modificar una cuenta
 
 					} else if dentro == 5 { //Modificar una cuenta
@@ -127,8 +129,9 @@ func comunicacion(enviar []byte) string {
 	defer conn.Close()
 	n, _ := conn.Write(enviar)
 	conn.CloseWrite()
-	buf := make([]byte, 200)
+	buf := make([]byte, 50000)
 	n, _ = conn.Read(buf)
+	//println(string(buf[:n]))
 	return string(buf[:n])
 }
 func menuComunicacion() int {
@@ -200,7 +203,7 @@ func crearUsuario() {
 	//key del usuario
 	var key []byte
 	key = obtenerkeyUsuario(contraseñaUsuario)
-
+	keyuser = key
 	if crear == "si" {
 		for crear != "no" {
 			println("Usuario:")
@@ -248,7 +251,61 @@ func obtenerkeyUsuario(contraseña string) []byte {
 		}
 	}
 }
+func borrarCuentaServicio() bool {
 
+	var resultado = false
+	var cuentaname string
+	var servicio string
+
+	var nuevaListaCuentas []cuenta
+	var listCuentasdisponbls []cuenta
+
+	UsuarioConectado.Cuentas = nil
+	pet := peticion{"delcuentas", "null", UsuarioConectado, nil, ""}
+
+	var peti = peticionToJSON(pet)
+	var comunicacionDel = comunicacion(peti)
+	var respuesta = jSONtoRespuesta([]byte(comunicacionDel))
+	//println(string(respuesta.Cuerpo))
+	cuentasRespuesta := jSONtoCuentas(respuesta.Cuerpo)
+	for _, obj := range cuentasRespuesta {
+		listCuentasdisponbls = append(listCuentasdisponbls, cuenta{desencriptar(obj.Usuario, keyuser), obj.Contraseña, desencriptar(obj.Servicio, keyuser)})
+	}
+	menuBorrado(listCuentasdisponbls)
+	fmt.Print("Introduce cuenta a borrar: ")
+	fmt.Scanf("%s\n", &cuentaname)
+	fmt.Print("Introduce servicio a borrar: ")
+	fmt.Scanf("%s\n", &servicio)
+
+	for _, obj := range listCuentasdisponbls {
+		if obj.Usuario != cuentaname || obj.Servicio != servicio {
+			obj = cuenta{encriptar([]byte(obj.Usuario), keyuser), obj.Contraseña, encriptar([]byte(obj.Servicio), keyuser)}
+			nuevaListaCuentas = append(nuevaListaCuentas, obj)
+		}
+	}
+	UsuarioConectado.Cuentas = nuevaListaCuentas
+	peticionActu := peticion{"delcuentas", "null", UsuarioConectado, nuevaListaCuentas, ""}
+
+	var petiActu = peticionToJSON(peticionActu)
+	var comunicacionActu = comunicacion(petiActu)
+	var respuestaActu = jSONtoRespuesta([]byte(comunicacionActu))
+
+	if string(respuestaActu.Cuerpo) == "Cuenta Borrada" {
+		resultado = true
+		println("Borrado realizado correctamente")
+	}
+	return resultado
+}
+
+func menuBorrado(cuents []cuenta) {
+	println("-----Seleccione la cuenta a borrar----")
+	println("--Usuario---------------Servicio--")
+
+	for _, obj := range cuents {
+		println(obj.Usuario + "				" + obj.Servicio)
+	}
+
+}
 func pedirclave() bool {
 	var nombre string
 	var contraseña string
@@ -261,7 +318,7 @@ func pedirclave() bool {
 
 	//key del usuario
 	//var key []byte
-	//key = obtenerkeyUsuario(contraseña)
+	keyuser = obtenerkeyUsuario(contraseña)
 
 	user := usuario{nombre + contraseña, "", nil}
 	pet := peticion{"sesion", "null", user, nil, ""}
@@ -277,8 +334,12 @@ func pedirclave() bool {
 		//SESIÓN
 		sesionUsuario.Hora = enteroHora
 		sesionUsuario.Valor = respuesta.Cookie
+
 		if claveCorreo(nombre + contraseña) {
 			fmt.Println("--------------------------------------------------")
+			UsuarioConectado = user
+			println(UsuarioConectado.Name)
+			return true
 			return true
 		} else {
 			return false
@@ -326,6 +387,13 @@ func jSONtoPeticion(pet []byte) peticion { //desjoson
 
 	return peticionDescifrado
 }
+func jSONtoCuentas(datos []byte) []cuenta {
+	var listadeCuentas []cuenta
+	json.Unmarshal(datos, &listadeCuentas)
+
+	return listadeCuentas
+
+}
 
 /////////////////////////////////////////////
 ///////// TRABAJO CON Encriptacion	////////
@@ -372,6 +440,9 @@ func desencriptar(datosEncriptados string, key []byte) string {
 	return fmt.Sprintf("%s", ciphertext)
 }
 
+/////////////////////////////////////////////
+///////// TRABAJO CON Correo		////////
+///////////////////////////////////////////
 func claveCorreo(nombre string) bool {
 	var clave string
 	fmt.Print("Introduce la clave enviada a tu correo:")

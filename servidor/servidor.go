@@ -50,10 +50,11 @@ type cookie struct {
 }
 
 type peticion struct {
-	Tipo    string  `json:"tipo"`
-	Cookie  string  `json:"cookie"`
-	Usuario usuario `json:"usuario"`
-	Clave   string  `json:"clave"`
+	Tipo    string   `json:"tipo"`
+	Cookie  string   `json:"cookie"`
+	Usuario usuario  `json:"usuario"`
+	Clave   string   `json:"clave"`
+	Cuentas []cuenta `json:"cuenta"`
 }
 
 type respuesta struct {
@@ -66,6 +67,18 @@ type respuesta struct {
 type correoValor struct {
 	Correo string `json:"correo"`
 	clave  string `json:"clave"`
+}
+
+type Mail struct {
+	senderId string
+	toIds    []string
+	subject  string
+	body     string
+}
+
+type SmtpServer struct {
+	host string
+	port string
 }
 
 var listaCookies []cookie
@@ -158,11 +171,26 @@ func handleConnection(conn net.Conn) {
 			res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", []byte("No se ha podido iniciar sesión")}
 			resp = respuestaToJSON(res)
 		}
-	case "cuentas":
+	case "getcuentas":
 
 		if comprobarCookieValida(pet) {
 			//fmt.Println("Cuentas")
 			res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", []byte("Cuentas son las siguientes")} //falta meter la cookie
+			resp = respuestaToJSON(res)
+		}
+
+	case "delcuentas":
+
+		if pet.Usuario.Cuentas == nil {
+			println(pet.Cuentas)
+			var stin = devolvercuentasUsuario(pet)
+			res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", stin} //falta meter la cookie
+			resp = respuestaToJSON(res)
+
+		} else {
+			println("He entrado aqui")
+			actualizarcuentas(pet)
+			res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", []byte("Cuenta Borrada")}
 			resp = respuestaToJSON(res)
 		}
 
@@ -234,6 +262,69 @@ func horaCookie(peticion int, caduca int) bool {
 }
 
 /////////////////////////////////////////////
+//////// TRABAJO CON CUENTAS	////////////
+///////////////////////////////////////////
+func devolvercuentasUsuario(pet peticion) []byte {
+	var listaUSR = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
+
+	for _, obj := range listaUSR {
+		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(pet.Usuario.Name))
+
+		if err == nil {
+
+			return leerArchivo(obj.Name + ".json")
+		}
+	}
+	return []byte("error al ler archivo")
+}
+
+func actualizarcuentas(pet peticion) bool {
+	var resultado = false
+	var listaUSR = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
+
+	for _, obj := range listaUSR {
+		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(pet.Usuario.Name))
+		if err == nil {
+
+			deleteFile(obj.Name + ".json")
+			createFile(obj.Name + ".json")
+			escribirArchivoClientes(obj.Name+".json", string(cuentasToJSON(pet.Usuario.Cuentas)))
+		}
+	}
+
+	return resultado
+}
+func deleteCuentaServicio(pet peticion) bool {
+	var nuevas []cuenta
+	var respuesta = false
+	var listaUSR = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
+	for _, obj := range listaUSR {
+
+		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(pet.Usuario.Name))
+		if err == nil {
+			var data = leerArchivo(obj.Name + ".json")
+			var cuentas = jSONtoCuentas(data)
+			respuesta = true
+
+			for _, obj := range cuentas {
+				println("Cuenta for: " + obj.Usuario)
+				println("Cuenta peticion: " + pet.Cuentas[0].Usuario)
+				if obj.Usuario != pet.Cuentas[0].Usuario || obj.Servicio != pet.Cuentas[0].Servicio {
+					nuevas = append(nuevas, obj)
+					println(pet.Cuentas[0].Usuario)
+				}
+				println("cuenta borrada: " + pet.Cuentas[0].Usuario)
+			}
+			deleteFile(obj.Name + ".json")
+			createFile(obj.Name + ".json")
+
+			escribirArchivoClientes(obj.Name+".json", string(cuentasToJSON(nuevas)))
+		}
+	}
+	return respuesta
+}
+
+/////////////////////////////////////////////
 //////// TRABAJO CON USUARIOS	////////////
 ///////////////////////////////////////////
 
@@ -250,33 +341,6 @@ func recuperarSesion(pet peticion) bool {
 	}
 
 	return false
-}
-
-func recuperarSesionCorreo(correo string, clave string) bool {
-
-	fmt.Println("Correo: " + correo)
-	fmt.Println("Clave: " + clave)
-	fmt.Println(listaCorreoClave)
-	for _, obj := range listaCorreoClave {
-		if obj.Correo == correo && obj.clave == clave {
-			return true
-		}
-	}
-
-	return false
-}
-
-func recuperarCorreo(user usuario) string {
-	var listaUSR = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
-
-	for _, obj := range listaUSR {
-		print("Comprobar sesion2: " + obj.Name + " " + user.Name)
-		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(user.Name))
-		if err == nil {
-			return obj.Correo
-		}
-	}
-	return ""
 }
 
 func iniciarSesion(usuario usuarioBD) bool {
@@ -352,9 +416,6 @@ func comprobarExistenciaUSR(listaUSR []usuarioBD, usuario usuarioBD) bool {
 	}
 	return existe
 }
-func devolvercuentasUsuario(pet peticion) []byte {
-	return leerArchivo(pet.Usuario.Name)
-}
 
 /////////////////////////////////////////////
 ///////////	 TRABAJO CON ARCHIVOS	////////
@@ -412,13 +473,6 @@ func escribirArchivoClientes(file string, data string) bool {
 	return escrito
 }
 
-func escribirLog(data string) bool {
-	var log = false
-	log = escribirArchivoClientes("log.txt", data)
-
-	return log
-}
-
 /////////////////////////////////////////////
 ///////////	 TRABAJO CON JSON	////////////
 ///////////////////////////////////////////
@@ -452,9 +506,9 @@ func jSONtoUsuariosBD(usuariosDataFile []byte) []usuarioBD { //desjoson
 	return usuariosDescifrado
 }
 
-func jSONtoCuentas(galleta cookie) []cuenta {
+func jSONtoCuentas(datos []byte) []cuenta {
 	var listadeCuentas []cuenta
-	json.Unmarshal([]byte(galleta.Oreo), listadeCuentas)
+	json.Unmarshal(datos, &listadeCuentas)
 
 	return listadeCuentas
 
@@ -473,7 +527,7 @@ func respuestaToJSON(res respuesta) []byte {
 }
 
 /////////////////////////////////////////////
-///////////	 TRABAJO CON ECRIPTACION	////
+///////////	 TRABAJO CON ENCRIPTACION	////
 ///////////////////////////////////////////
 
 // GenerateRandomBytes returns securely generated random bytes.
@@ -501,18 +555,9 @@ func GenerateRandomString(s int) (string, error) {
 	return base64.URLEncoding.EncodeToString(b), err
 }
 
-//EMAIL de autenticación
-type Mail struct {
-	senderId string
-	toIds    []string
-	subject  string
-	body     string
-}
-
-type SmtpServer struct {
-	host string
-	port string
-}
+/////////////////////////////////////////////
+///////////	 TRABAJO CON CORREO			////
+///////////////////////////////////////////
 
 func (s *SmtpServer) ServerName() string {
 	return s.host + ":" + s.port
@@ -627,4 +672,41 @@ func recuperarClave(correo string) string {
 	}
 	return "ERROR ️☹"
 
+}
+
+func recuperarCorreo(user usuario) string {
+	var listaUSR = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
+
+	for _, obj := range listaUSR {
+		print("Comprobar sesion2: " + obj.Name + " " + user.Name)
+		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(user.Name))
+		if err == nil {
+			return obj.Correo
+		}
+	}
+	return ""
+}
+
+func recuperarSesionCorreo(correo string, clave string) bool {
+
+	fmt.Println("Correo: " + correo)
+	fmt.Println("Clave: " + clave)
+	fmt.Println(listaCorreoClave)
+	for _, obj := range listaCorreoClave {
+		if obj.Correo == correo && obj.clave == clave {
+			return true
+		}
+	}
+
+	return false
+}
+
+/////////////////////////////////////////////
+///////////	 TRABAJO CON LOG	////////////
+///////////////////////////////////////////
+func escribirLog(data string) bool {
+	var log = false
+	log = escribirArchivoClientes("log.txt", data)
+
+	return log
 }
