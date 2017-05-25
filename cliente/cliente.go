@@ -129,7 +129,7 @@ func comunicacion(enviar []byte) string {
 	defer conn.Close()
 	n, _ := conn.Write(enviar)
 	conn.CloseWrite()
-	buf := make([]byte, 4000)
+	buf := make([]byte, 50000)
 	n, _ = conn.Read(buf)
 	//println(string(buf[:n]))
 	return string(buf[:n])
@@ -253,24 +253,23 @@ func obtenerkeyUsuario(contraseña string) []byte {
 }
 func borrarCuentaServicio() bool {
 
-	var resultado = true
+	var resultado = false
 	var cuentaname string
 	var servicio string
 
 	var nuevaListaCuentas []cuenta
 	var listCuentasdisponbls []cuenta
 
-	//cuentaBorrar = append(cuentaBorrar, cuenta{encriptar([]byte(cuentaname), keyuser), "nil", encriptar([]byte(servicio), keyuser)})
+	UsuarioConectado.Cuentas = nil
 	pet := peticion{"delcuentas", "null", UsuarioConectado, nil, ""}
 
 	var peti = peticionToJSON(pet)
-	var comunicacion = comunicacion(peti)
-	var respuesta = jSONtoRespuesta([]byte(comunicacion))
+	var comunicacionDel = comunicacion(peti)
+	var respuesta = jSONtoRespuesta([]byte(comunicacionDel))
 	//println(string(respuesta.Cuerpo))
 	cuentasRespuesta := jSONtoCuentas(respuesta.Cuerpo)
 	for _, obj := range cuentasRespuesta {
 		listCuentasdisponbls = append(listCuentasdisponbls, cuenta{desencriptar(obj.Usuario, keyuser), obj.Contraseña, desencriptar(obj.Servicio, keyuser)})
-		//println("nombre: " + obj.Usuario + "contraseña: " + obj.Contraseña + "servicio " + obj.Servicio)
 	}
 	menuBorrado(listCuentasdisponbls)
 	fmt.Print("Introduce cuenta a borrar: ")
@@ -280,8 +279,20 @@ func borrarCuentaServicio() bool {
 
 	for _, obj := range listCuentasdisponbls {
 		if obj.Usuario != cuentaname || obj.Servicio != servicio {
+			obj = cuenta{encriptar([]byte(obj.Usuario), keyuser), obj.Contraseña, encriptar([]byte(obj.Servicio), keyuser)}
 			nuevaListaCuentas = append(nuevaListaCuentas, obj)
 		}
+	}
+	UsuarioConectado.Cuentas = nuevaListaCuentas
+	peticionActu := peticion{"delcuentas", "null", UsuarioConectado, nuevaListaCuentas, ""}
+
+	println(peticionActu.Cuentas)
+	var petiActu = peticionToJSON(peticionActu)
+	var comunicacionActu = comunicacion(petiActu)
+	var respuestaActu = jSONtoRespuesta([]byte(comunicacionActu))
+
+	if string(respuestaActu.Cuerpo) == "Cuenta Borrada" {
+		resultado = true
 	}
 	return resultado
 }

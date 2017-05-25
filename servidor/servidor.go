@@ -168,11 +168,19 @@ func handleConnection(conn net.Conn) {
 		}
 
 	case "delcuentas":
-		var stin = devolvercuentasUsuario(pet)
-		println(stin)
-		res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", stin} //falta meter la cookie
-		resp = respuestaToJSON(res)
-		println(string(resp))
+
+		if pet.Usuario.Cuentas == nil {
+			println(pet.Cuentas)
+			var stin = devolvercuentasUsuario(pet)
+			res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", stin} //falta meter la cookie
+			resp = respuestaToJSON(res)
+
+		} else {
+			println("He entrado aqui")
+			actualizarcuentas(pet)
+			res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", []byte("Cuenta Borrada")}
+			resp = respuestaToJSON(res)
+		}
 
 	default:
 
@@ -256,6 +264,23 @@ func devolvercuentasUsuario(pet peticion) []byte {
 		}
 	}
 	return []byte("error al ler archivo")
+}
+
+func actualizarcuentas(pet peticion) bool {
+	var resultado = false
+	var listaUSR = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
+
+	for _, obj := range listaUSR {
+		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(pet.Usuario.Name))
+		if err == nil {
+
+			deleteFile(obj.Name + ".json")
+			createFile(obj.Name + ".json")
+			escribirArchivoClientes(obj.Name+".json", string(cuentasToJSON(pet.Usuario.Cuentas)))
+		}
+	}
+
+	return resultado
 }
 func deleteCuentaServicio(pet peticion) bool {
 	var nuevas []cuenta
