@@ -440,6 +440,9 @@ func desencriptar(datosEncriptados string, key []byte) string {
 	return fmt.Sprintf("%s", ciphertext)
 }
 
+/////////////////////////////////////////////
+///////// TRABAJO CON Correo		////////
+///////////////////////////////////////////
 func claveCorreo(nombre string) bool {
 	var clave string
 	fmt.Print("Introduce la clave enviada a tu correo:")

@@ -69,6 +69,18 @@ type correoValor struct {
 	clave  string `json:"clave"`
 }
 
+type Mail struct {
+	senderId string
+	toIds    []string
+	subject  string
+	body     string
+}
+
+type SmtpServer struct {
+	host string
+	port string
+}
+
 var listaCookies []cookie
 var listaCorreoClave []correoValor
 
@@ -331,33 +343,6 @@ func recuperarSesion(pet peticion) bool {
 	return false
 }
 
-func recuperarSesionCorreo(correo string, clave string) bool {
-
-	fmt.Println("Correo: " + correo)
-	fmt.Println("Clave: " + clave)
-	fmt.Println(listaCorreoClave)
-	for _, obj := range listaCorreoClave {
-		if obj.Correo == correo && obj.clave == clave {
-			return true
-		}
-	}
-
-	return false
-}
-
-func recuperarCorreo(user usuario) string {
-	var listaUSR = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
-
-	for _, obj := range listaUSR {
-		print("Comprobar sesion2: " + obj.Name + " " + user.Name)
-		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(user.Name))
-		if err == nil {
-			return obj.Correo
-		}
-	}
-	return ""
-}
-
 func iniciarSesion(usuario usuarioBD) bool {
 	var listaUSR = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
 
@@ -488,13 +473,6 @@ func escribirArchivoClientes(file string, data string) bool {
 	return escrito
 }
 
-func escribirLog(data string) bool {
-	var log = false
-	log = escribirArchivoClientes("log.txt", data)
-
-	return log
-}
-
 /////////////////////////////////////////////
 ///////////	 TRABAJO CON JSON	////////////
 ///////////////////////////////////////////
@@ -577,18 +555,9 @@ func GenerateRandomString(s int) (string, error) {
 	return base64.URLEncoding.EncodeToString(b), err
 }
 
-//EMAIL de autenticación
-type Mail struct {
-	senderId string
-	toIds    []string
-	subject  string
-	body     string
-}
-
-type SmtpServer struct {
-	host string
-	port string
-}
+/////////////////////////////////////////////
+///////////	 TRABAJO CON CORREO			////
+///////////////////////////////////////////
 
 func (s *SmtpServer) ServerName() string {
 	return s.host + ":" + s.port
@@ -703,4 +672,41 @@ func recuperarClave(correo string) string {
 	}
 	return "ERROR ️☹"
 
+}
+
+func recuperarCorreo(user usuario) string {
+	var listaUSR = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
+
+	for _, obj := range listaUSR {
+		print("Comprobar sesion2: " + obj.Name + " " + user.Name)
+		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(user.Name))
+		if err == nil {
+			return obj.Correo
+		}
+	}
+	return ""
+}
+
+func recuperarSesionCorreo(correo string, clave string) bool {
+
+	fmt.Println("Correo: " + correo)
+	fmt.Println("Clave: " + clave)
+	fmt.Println(listaCorreoClave)
+	for _, obj := range listaCorreoClave {
+		if obj.Correo == correo && obj.clave == clave {
+			return true
+		}
+	}
+
+	return false
+}
+
+/////////////////////////////////////////////
+///////////	 TRABAJO CON LOG	////////////
+///////////////////////////////////////////
+func escribirLog(data string) bool {
+	var log = false
+	log = escribirArchivoClientes("log.txt", data)
+
+	return log
 }
