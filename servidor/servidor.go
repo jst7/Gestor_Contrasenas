@@ -91,13 +91,6 @@ var expira = 180
 /////////	Funciones		////////
 ///////////////////////////////////
 
-/**
-Todos las "_" se pueden sustituir por "err" y añadir el codigo:
-	if err != nil {
-		log.Println(err)
-		return
-	}
-**/
 func main() {
 	log.SetFlags(log.Lshortfile)
 
@@ -124,12 +117,7 @@ func handleConnection(conn net.Conn) {
 	r := bufio.NewReader(conn)
 
 	var resp []byte
-
-	//var linea = "incorrecto"
 	msg, _ := r.ReadString('\n')
-
-	//println("Mensaje recibido:")
-	//println(msg)
 
 	var pet = jSONtoPeticion([]byte(msg))
 

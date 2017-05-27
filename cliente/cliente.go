@@ -66,7 +66,6 @@ Todos las "_" se pueden sustituir por "err" y añadir el codigo:
 /////////////////////////////////////
 /////////	Metodos			////////
 ///////////////////////////////////
-
 func main() {
 	var op int
 
@@ -172,6 +171,7 @@ func añadirCuentaAUsuario(user usuario) usuario { //revisar problema al quitar 
 	return UsuarioModificado
 }
 func crearUsuario() {
+
 	//Datos de usuario
 	var nombre string
 	var correo string
@@ -298,8 +298,8 @@ func borrarCuentaServicio() bool {
 	}
 	return resultado
 }
-
 func menuBorrado(cuents []cuenta) {
+
 	println("-----Seleccione la cuenta a borrar----")
 	println("--Usuario---------------Servicio--")
 
@@ -369,6 +369,7 @@ func listarCuentas() {
 	listaCuentas(listCuentasdisponbls)
 }
 func listaCuentas(cuents []cuenta) {
+
 	println("-----Seleccione la cuenta a borrar----")
 	println("--Usuario--------------Servicio--------------Contraseña")
 
