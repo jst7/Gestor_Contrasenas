@@ -147,7 +147,7 @@ func menuComunicacion() int {
 }
 
 /////////////////////////////////////////////
-///////// TRABAJO CON USURIO	////////////
+///////// TRABAJO CON USUARIO	////////////
 ///////////////////////////////////////////
 func añadirCuentaAUsuario(user usuario) usuario { //revisar problema al quitar la contraseña del usuario
 
@@ -251,63 +251,7 @@ func obtenerkeyUsuario(contraseña string) []byte {
 		}
 	}
 }
-func borrarCuentaServicio() bool {
 
-	var resultado = false
-	var cuentaname string
-	var servicio string
-
-	var nuevaListaCuentas []cuenta
-	var listCuentasdisponbls []cuenta
-
-	UsuarioConectado.Cuentas = nil
-	pet := peticion{"delcuentas", "null", UsuarioConectado, nil, ""}
-
-	var peti = peticionToJSON(pet)
-	var comunicacionDel = comunicacion(peti)
-	var respuesta = jSONtoRespuesta([]byte(comunicacionDel))
-	//println(string(respuesta.Cuerpo))
-	cuentasRespuesta := jSONtoCuentas(respuesta.Cuerpo)
-	for _, obj := range cuentasRespuesta {
-		listCuentasdisponbls = append(listCuentasdisponbls, cuenta{desencriptar(obj.Usuario, keyuser), obj.Contraseña, desencriptar(obj.Servicio, keyuser)})
-	}
-	menuBorrado(listCuentasdisponbls)
-	fmt.Print("Introduce cuenta a borrar: ")
-	fmt.Scanf("%s\n", &cuentaname)
-	fmt.Print("Introduce servicio a borrar: ")
-	fmt.Scanf("%s\n", &servicio)
-
-	for _, obj := range listCuentasdisponbls {
-		if obj.Usuario != cuentaname || obj.Servicio != servicio {
-			obj = cuenta{encriptar([]byte(obj.Usuario), keyuser), obj.Contraseña, encriptar([]byte(obj.Servicio), keyuser)}
-			nuevaListaCuentas = append(nuevaListaCuentas, obj)
-		}
-	}
-	UsuarioConectado.Cuentas = nuevaListaCuentas
-	peticionActu := peticion{"delcuentas", "null", UsuarioConectado, nuevaListaCuentas, ""}
-
-	var petiActu = peticionToJSON(peticionActu)
-	var comunicacionActu = comunicacion(petiActu)
-	var respuestaActu = jSONtoRespuesta([]byte(comunicacionActu))
-
-	if string(respuestaActu.Estado) == "Correcto" {
-		resultado = true
-		println("Borrado realizado correctamente")
-	} else if string(respuestaActu.Estado) == "Incorrecto" {
-		println("Borrado no realizado")
-	}
-	return resultado
-}
-func menuBorrado(cuents []cuenta) {
-
-	println("-----Seleccione la cuenta a borrar----")
-	println("--Usuario---------------Servicio--")
-
-	for _, obj := range cuents {
-		println(obj.Usuario + "			" + obj.Servicio)
-	}
-
-}
 func pedirclave() bool {
 	var nombre string
 	var contraseña string
@@ -351,6 +295,10 @@ func pedirclave() bool {
 	fmt.Println("Ha ocurrido un error: " + string(respuesta.Cuerpo))
 	return false
 }
+
+/////////////////////////////////////////////
+///////// TRABAJO CON CUENTAS	////////////
+///////////////////////////////////////////
 func listarCuentas() {
 
 	var listCuentasdisponbls []cuenta
@@ -375,6 +323,119 @@ func listaCuentas(cuents []cuenta) {
 
 	for _, obj := range cuents {
 		println(obj.Usuario + "			" + obj.Servicio + "			" + obj.Contraseña)
+	}
+
+}
+func modificarCuentas() {
+
+	var cuentaname string
+	var servicio string
+	var cuentaNNombre string
+	var servicioNServi string
+	var nuevoPassword string
+
+	var nuevaListaCuentas []cuenta
+	var listCuentasdisponbls []cuenta
+
+	UsuarioConectado.Cuentas = nil
+	pet := peticion{"actualizarCuenta", "null", UsuarioConectado, nil, ""}
+
+	var peti = peticionToJSON(pet)
+	var comunicacionDel = comunicacion(peti)
+	var respuesta = jSONtoRespuesta([]byte(comunicacionDel))
+	//println(string(respuesta.Cuerpo))
+	cuentasRespuesta := jSONtoCuentas(respuesta.Cuerpo)
+	for _, obj := range cuentasRespuesta {
+		listCuentasdisponbls = append(listCuentasdisponbls, cuenta{desencriptar(obj.Usuario, keyuser), desencriptar(obj.Contraseña, keyuser), desencriptar(obj.Servicio, keyuser)})
+	}
+	listaCuentas(listCuentasdisponbls)
+	fmt.Print("Introduce cuenta a modificar: ")
+	fmt.Scanf("%s\n", &cuentaname)
+	fmt.Print("Introduce servicio a modificar: ")
+	fmt.Scanf("%s\n", &servicio)
+
+	fmt.Print("Introduce nuevo nombre para la cuenta " + cuentaname + ": ")
+	fmt.Scanf("%s\n", &cuentaNNombre)
+	fmt.Print("Introduce nuevo servicio para la cuenta " + cuentaname + " del servicio " + servicio + ": ")
+	fmt.Scanf("%s\n", &servicioNServi)
+	fmt.Print("Introduce nueva contraseña para la cuenta " + cuentaname + ": ")
+	fmt.Scanf("%s\n", &nuevoPassword)
+
+	var cuentaModificada = cuenta{encriptar([]byte(cuentaNNombre), keyuser), encriptar([]byte(nuevoPassword), keyuser), encriptar([]byte(servicioNServi), keyuser)}
+	for _, obj := range listCuentasdisponbls {
+		if obj.Usuario != cuentaname || obj.Servicio != servicio {
+			obj = cuenta{encriptar([]byte(obj.Usuario), keyuser), obj.Contraseña, encriptar([]byte(obj.Servicio), keyuser)}
+			nuevaListaCuentas = append(nuevaListaCuentas, obj)
+		}
+	}
+
+	nuevaListaCuentas = append(nuevaListaCuentas, cuentaModificada)
+	UsuarioConectado.Cuentas = nuevaListaCuentas
+	peticionActu := peticion{"actualizarCuenta", "null", UsuarioConectado, nuevaListaCuentas, ""}
+
+	var petiActu = peticionToJSON(peticionActu)
+	var comunicacionActu = comunicacion(petiActu)
+	var respuestaActu = jSONtoRespuesta([]byte(comunicacionActu))
+
+	if string(respuestaActu.Estado) == "Correcto" {
+		println("Borrado realizado correctamente")
+	} else if string(respuestaActu.Estado) == "Incorrecto" {
+		println("Borrado no realizado")
+	}
+}
+func borrarCuentaServicio() {
+
+	var cuentaname string
+	var servicio string
+
+	var nuevaListaCuentas []cuenta
+	var listCuentasdisponbls []cuenta
+
+	UsuarioConectado.Cuentas = nil
+	pet := peticion{"delcuentas", "null", UsuarioConectado, nil, ""}
+
+	var peti = peticionToJSON(pet)
+	var comunicacionDel = comunicacion(peti)
+	var respuesta = jSONtoRespuesta([]byte(comunicacionDel))
+	//println(string(respuesta.Cuerpo))
+	cuentasRespuesta := jSONtoCuentas(respuesta.Cuerpo)
+	for _, obj := range cuentasRespuesta {
+		listCuentasdisponbls = append(listCuentasdisponbls, cuenta{desencriptar(obj.Usuario, keyuser), obj.Contraseña, desencriptar(obj.Servicio, keyuser)})
+	}
+	menuBorrado(listCuentasdisponbls)
+	fmt.Print("Introduce cuenta a borrar: ")
+	fmt.Scanf("%s\n", &cuentaname)
+	fmt.Print("Introduce servicio a borrar: ")
+	fmt.Scanf("%s\n", &servicio)
+
+	for _, obj := range listCuentasdisponbls {
+		if obj.Usuario != cuentaname || obj.Servicio != servicio {
+			obj = cuenta{encriptar([]byte(obj.Usuario), keyuser), obj.Contraseña, encriptar([]byte(obj.Servicio), keyuser)}
+			nuevaListaCuentas = append(nuevaListaCuentas, obj)
+		}
+	}
+	UsuarioConectado.Cuentas = nuevaListaCuentas
+	peticionActu := peticion{"delcuentas", "null", UsuarioConectado, nuevaListaCuentas, ""}
+
+	var petiActu = peticionToJSON(peticionActu)
+	var comunicacionActu = comunicacion(petiActu)
+	var respuestaActu = jSONtoRespuesta([]byte(comunicacionActu))
+
+	if string(respuestaActu.Estado) == "Correcto" {
+		println("Borrado realizado correctamente")
+	} else if string(respuestaActu.Estado) == "Incorrecto" {
+		println("Borrado no realizado")
+	}
+
+}
+
+func menuBorrado(cuents []cuenta) {
+
+	println("-----Seleccione la cuenta a borrar----")
+	println("--Usuario---------------Servicio--")
+
+	for _, obj := range cuents {
+		println(obj.Usuario + "			" + obj.Servicio)
 	}
 
 }
