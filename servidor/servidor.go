@@ -170,7 +170,6 @@ func handleConnection(conn net.Conn) {
 	case "delcuentas":
 
 		if pet.Usuario.Cuentas == nil {
-			println(pet.Cuentas)
 			var stin = devolvercuentasUsuario(pet)
 			res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", stin} //falta meter la cookie
 			resp = respuestaToJSON(res)
@@ -187,7 +186,22 @@ func handleConnection(conn net.Conn) {
 			}
 
 		}
+	case "actualizarCuenta":
 
+		if pet.Usuario.Cuentas == nil {
+			var stin = devolvercuentasUsuario(pet)
+			res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", stin} //falta meter la cookie
+			resp = respuestaToJSON(res)
+		} else {
+			var resul = actualizarcuentas(pet)
+			if resul {
+				res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", []byte("Cuenta Actualizada")}
+				resp = respuestaToJSON(res)
+			} else {
+				res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", []byte("Cuenta no Actualizada")}
+				resp = respuestaToJSON(res)
+			}
+		}
 	default:
 
 		//linea = "incorrecto"

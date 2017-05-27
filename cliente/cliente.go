@@ -330,6 +330,7 @@ func modificarCuentas() {
 
 	var cuentaname string
 	var servicio string
+	var password string
 	var cuentaNNombre string
 	var servicioNServi string
 	var nuevoPassword string
@@ -353,13 +354,41 @@ func modificarCuentas() {
 	fmt.Scanf("%s\n", &cuentaname)
 	fmt.Print("Introduce servicio a modificar: ")
 	fmt.Scanf("%s\n", &servicio)
+	fmt.Print("Introduce contraseña del servicio a modificar: ")
+	fmt.Scanf("%s\n", &password)
 
-	fmt.Print("Introduce nuevo nombre para la cuenta " + cuentaname + ": ")
-	fmt.Scanf("%s\n", &cuentaNNombre)
-	fmt.Print("Introduce nuevo servicio para la cuenta " + cuentaname + " del servicio " + servicio + ": ")
-	fmt.Scanf("%s\n", &servicioNServi)
-	fmt.Print("Introduce nueva contraseña para la cuenta " + cuentaname + ": ")
-	fmt.Scanf("%s\n", &nuevoPassword)
+	fmt.Print("¿Quieres cambiar el nombre?")
+	var cambiarNombre string
+	fmt.Scanf("%s\n", &cambiarNombre)
+
+	if cambiarNombre == "si" || cambiarNombre == "SI" {
+		fmt.Print("Introduce nuevo nombre para la cuenta " + cuentaname + ": ")
+		fmt.Scanf("%s\n", &cuentaNNombre)
+	} else {
+		cuentaNNombre = cuentaname
+	}
+
+	fmt.Print("¿Quieres cambiar el servicio?")
+	var cambiarServicio string
+	fmt.Scanf("%s\n", &cambiarServicio)
+
+	if cambiarServicio == "si" || cambiarServicio == "SI" {
+		fmt.Print("Introduce nuevo servicio para la cuenta " + cuentaname + " del servicio " + servicio + ": ")
+		fmt.Scanf("%s\n", &servicioNServi)
+	} else {
+		servicioNServi = servicio
+	}
+
+	fmt.Print("¿Quieres cambiar la contraseña?")
+	var cambiarPass string
+	fmt.Scanf("%s\n", &cambiarPass)
+
+	if cambiarServicio == "si" || cambiarServicio == "SI" {
+		fmt.Print("Introduce nueva contraseña para la cuenta " + cuentaname + ": ")
+		fmt.Scanf("%s\n", &nuevoPassword)
+	} else {
+		nuevoPassword = password
+	}
 
 	var cuentaModificada = cuenta{encriptar([]byte(cuentaNNombre), keyuser), encriptar([]byte(nuevoPassword), keyuser), encriptar([]byte(servicioNServi), keyuser)}
 	for _, obj := range listCuentasdisponbls {
@@ -378,9 +407,9 @@ func modificarCuentas() {
 	var respuestaActu = jSONtoRespuesta([]byte(comunicacionActu))
 
 	if string(respuestaActu.Estado) == "Correcto" {
-		println("Borrado realizado correctamente")
+		println("Actualizado realizado correctamente")
 	} else if string(respuestaActu.Estado) == "Incorrecto" {
-		println("Borrado no realizado")
+		println("Actualizado no realizado")
 	}
 }
 func borrarCuentaServicio() {
