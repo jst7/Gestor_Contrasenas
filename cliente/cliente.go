@@ -84,7 +84,7 @@ func main() {
 					dentro = menuComunicacion()
 
 					if dentro == 1 { //Listar cuentas guardadas
-
+						listarCuentas()
 					} else if dentro == 2 { //Eliminar una cuenta concreta
 						borrarCuentaServicio()
 					} else if dentro == 3 { //Modificar una cuenta
@@ -290,9 +290,11 @@ func borrarCuentaServicio() bool {
 	var comunicacionActu = comunicacion(petiActu)
 	var respuestaActu = jSONtoRespuesta([]byte(comunicacionActu))
 
-	if string(respuestaActu.Cuerpo) == "Cuenta Borrada" {
+	if string(respuestaActu.Estado) == "Correcto" {
 		resultado = true
 		println("Borrado realizado correctamente")
+	} else if string(respuestaActu.Estado) == "Incorrecto" {
+		println("Borrado no realizado")
 	}
 	return resultado
 }
@@ -302,7 +304,7 @@ func menuBorrado(cuents []cuenta) {
 	println("--Usuario---------------Servicio--")
 
 	for _, obj := range cuents {
-		println(obj.Usuario + "				" + obj.Servicio)
+		println(obj.Usuario + "			" + obj.Servicio)
 	}
 
 }
@@ -348,6 +350,32 @@ func pedirclave() bool {
 	}
 	fmt.Println("Ha ocurrido un error: " + string(respuesta.Cuerpo))
 	return false
+}
+func listarCuentas() {
+
+	var listCuentasdisponbls []cuenta
+	UsuarioConectado.Cuentas = nil
+
+	pet := peticion{"getcuentas", "null", UsuarioConectado, nil, ""}
+
+	var peti = peticionToJSON(pet)
+	var comunicacionDel = comunicacion(peti)
+	var respuesta = jSONtoRespuesta([]byte(comunicacionDel))
+	//println(string(respuesta.Cuerpo))
+	cuentasRespuesta := jSONtoCuentas(respuesta.Cuerpo)
+	for _, obj := range cuentasRespuesta {
+		listCuentasdisponbls = append(listCuentasdisponbls, cuenta{desencriptar(obj.Usuario, keyuser), desencriptar(obj.Contraseña, keyuser), desencriptar(obj.Servicio, keyuser)})
+	}
+	listaCuentas(listCuentasdisponbls)
+}
+func listaCuentas(cuents []cuenta) {
+	println("-----Seleccione la cuenta a borrar----")
+	println("--Usuario--------------Servicio--------------Contraseña")
+
+	for _, obj := range cuents {
+		println(obj.Usuario + "			" + obj.Servicio + "			" + obj.Contraseña)
+	}
+
 }
 
 /////////////////////////////////////////////
