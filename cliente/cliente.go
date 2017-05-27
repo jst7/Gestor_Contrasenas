@@ -87,8 +87,8 @@ func main() {
 					} else if dentro == 2 { //Eliminar una cuenta concreta
 						borrarCuentaServicio()
 					} else if dentro == 3 { //Modificar una cuenta
-
-					} else if dentro == 5 { //Modificar una cuenta
+						modificarCuentas()
+					} else if dentro == 5 { //mostrar cookie
 						fmt.Println(sesionUsuario)
 					} else { //Cerrar sesión
 
@@ -318,7 +318,7 @@ func listarCuentas() {
 }
 func listaCuentas(cuents []cuenta) {
 
-	println("-----Seleccione la cuenta a borrar----")
+	println("-----	Lista de cuentas	----")
 	println("--Usuario--------------Servicio--------------Contraseña")
 
 	for _, obj := range cuents {
@@ -383,7 +383,7 @@ func modificarCuentas() {
 	var cambiarPass string
 	fmt.Scanf("%s\n", &cambiarPass)
 
-	if cambiarServicio == "si" || cambiarServicio == "SI" {
+	if cambiarPass == "si" || cambiarPass == "SI" {
 		fmt.Print("Introduce nueva contraseña para la cuenta " + cuentaname + ": ")
 		fmt.Scanf("%s\n", &nuevoPassword)
 	} else {
@@ -393,7 +393,7 @@ func modificarCuentas() {
 	var cuentaModificada = cuenta{encriptar([]byte(cuentaNNombre), keyuser), encriptar([]byte(nuevoPassword), keyuser), encriptar([]byte(servicioNServi), keyuser)}
 	for _, obj := range listCuentasdisponbls {
 		if obj.Usuario != cuentaname || obj.Servicio != servicio {
-			obj = cuenta{encriptar([]byte(obj.Usuario), keyuser), obj.Contraseña, encriptar([]byte(obj.Servicio), keyuser)}
+			obj = cuenta{encriptar([]byte(obj.Usuario), keyuser), encriptar([]byte(obj.Contraseña), keyuser), encriptar([]byte(obj.Servicio), keyuser)}
 			nuevaListaCuentas = append(nuevaListaCuentas, obj)
 		}
 	}
