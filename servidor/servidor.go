@@ -91,13 +91,6 @@ var expira = 180
 /////////	Funciones		////////
 ///////////////////////////////////
 
-/**
-Todos las "_" se pueden sustituir por "err" y añadir el codigo:
-	if err != nil {
-		log.Println(err)
-		return
-	}
-**/
 func main() {
 	log.SetFlags(log.Lshortfile)
 
@@ -124,12 +117,7 @@ func handleConnection(conn net.Conn) {
 	r := bufio.NewReader(conn)
 
 	var resp []byte
-
-	//var linea = "incorrecto"
 	msg, _ := r.ReadString('\n')
-
-	//println("Mensaje recibido:")
-	//println(msg)
 
 	var pet = jSONtoPeticion([]byte(msg))
 
@@ -175,7 +163,7 @@ func handleConnection(conn net.Conn) {
 
 		if comprobarCookieValida(pet) {
 			//fmt.Println("Cuentas")
-			res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", []byte("Cuentas son las siguientes")} //falta meter la cookie
+			res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", devolvercuentasUsuario(pet)} //falta meter la cookie
 			resp = respuestaToJSON(res)
 		}
 
@@ -188,10 +176,16 @@ func handleConnection(conn net.Conn) {
 			resp = respuestaToJSON(res)
 
 		} else {
-			println("He entrado aqui")
-			actualizarcuentas(pet)
-			res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", []byte("Cuenta Borrada")}
-			resp = respuestaToJSON(res)
+
+			var resul = actualizarcuentas(pet)
+			if resul {
+				res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", []byte("Cuenta Borrada")}
+				resp = respuestaToJSON(res)
+			} else {
+				res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", []byte("Cuenta no borrada")}
+				resp = respuestaToJSON(res)
+			}
+
 		}
 
 	default:
@@ -289,39 +283,12 @@ func actualizarcuentas(pet peticion) bool {
 			deleteFile(obj.Name + ".json")
 			createFile(obj.Name + ".json")
 			escribirArchivoClientes(obj.Name+".json", string(cuentasToJSON(pet.Usuario.Cuentas)))
+			resultado = true
+
 		}
 	}
 
 	return resultado
-}
-func deleteCuentaServicio(pet peticion) bool {
-	var nuevas []cuenta
-	var respuesta = false
-	var listaUSR = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
-	for _, obj := range listaUSR {
-
-		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(pet.Usuario.Name))
-		if err == nil {
-			var data = leerArchivo(obj.Name + ".json")
-			var cuentas = jSONtoCuentas(data)
-			respuesta = true
-
-			for _, obj := range cuentas {
-				println("Cuenta for: " + obj.Usuario)
-				println("Cuenta peticion: " + pet.Cuentas[0].Usuario)
-				if obj.Usuario != pet.Cuentas[0].Usuario || obj.Servicio != pet.Cuentas[0].Servicio {
-					nuevas = append(nuevas, obj)
-					println(pet.Cuentas[0].Usuario)
-				}
-				println("cuenta borrada: " + pet.Cuentas[0].Usuario)
-			}
-			deleteFile(obj.Name + ".json")
-			createFile(obj.Name + ".json")
-
-			escribirArchivoClientes(obj.Name+".json", string(cuentasToJSON(nuevas)))
-		}
-	}
-	return respuesta
 }
 
 /////////////////////////////////////////////
