@@ -5,7 +5,7 @@
 ####Nuesstra Práctica
 
 - Certificados
-		
+- Comunicación		
 - Optativo
 	- Servidor de Correo
 	- Conocimiento 0
@@ -30,7 +30,7 @@ openssl ecparam -genkey -name secp384r1 -out server.key
 `
 ``openssl req -new -x509 -sha256 -key server.key -out server.crt -days 3650``
 
-Para la comunicación algo similar a esto en el cliente y servidor:
+Para la comunicación algo similar en base a esto en el cliente y servidor:
 
 ```GO
 func main() {
@@ -71,4 +71,41 @@ func handleConnection(conn net.Conn) {
 }
 
 ```
+### Comunicación
+Para la comunicación hemos realizado un tunel TLS con cabeceras entre cliente y servidor.
+Para ello hemos creado una estructura con estos campos:
+
+**Servidor:**
+
+```GO
+
+type peticion struct {
+	Tipo    string   `json:"tipo"`
+	Cookie  string   `json:"cookie"`
+	Usuario usuario  `json:"usuario"`
+	Clave   string   `json:"clave"`
+	Cuentas []cuenta `json:"cuenta"`
+}
+
+type usuario struct {
+	Name    string   `json:"nombre"`
+	Correo  string   `json:"correo"`
+	Cuentas []cuenta `json:"cuentas"`
+}
+
+type cuenta struct {
+	Usuario    string `json:"usuario"`
+	Contraseña string `json:"contraseña"`
+	Servicio   string `json:"servicio"`
+	//Clave string `json:"clave"`
+	//ID    string `json:"id"`
+}
+```
+
+Lo importante seria la cabecera tipo que sería la que redigiría las peticiones del cliente. Por otro lado, tenemos la cookie para la sesion, usuario que es un tipo de usuario y cuentas.
+
+**Cliente:**
+
+
+
 ### Puesta en marcha
