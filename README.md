@@ -1,23 +1,36 @@
-# Gestor_Contrasenas
+# Gestor de Contraseñas
+###Indice
+####Otras alternativas
+
+####Nuesstra Práctica
+
+- Certificados
+		
+- Optativo
+	- Servidor de Correo
+	- Conocimiento 0
+		
+- Metodología de trabajo
+- Puesta en marcha
+
+	
+## Otras alternativas
+## Nuestra Práctica
+### Certificados
 
 Hemos creado los certificados
 
-usando:
+Usando:
 **Key considerations for algorithm "RSA" ≥ 2048-bit**
 `
 openssl genrsa -out server.key 2048
 `
-
-** Key considerations for algorithm "ECDSA" ≥ secp384r1
-List ECDSA the supported curves (openssl ecparam -list_curves)**
 `
 openssl ecparam -genkey -name secp384r1 -out server.key
 `
-**Generation of self-signed(x509) public key (PEM-encodings .pem|.crt) based on the private (.key)**
-
 ``openssl req -new -x509 -sha256 -key server.key -out server.crt -days 3650``
 
-
+Para la comunicación algo similar a esto en el cliente y servidor:
 
 ```GO
 func main() {
@@ -58,3 +71,4 @@ func handleConnection(conn net.Conn) {
 }
 
 ```
+### Puesta en marcha
