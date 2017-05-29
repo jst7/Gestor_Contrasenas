@@ -687,7 +687,10 @@ func recuperarSesionCorreo(correo string, clave string) bool {
 ///////////////////////////////////////////
 func escribirLog(data string) bool {
 	var log = false
-	log = escribirArchivoClientes("log.txt", data)
+	t := time.Now()
+	var stringHora = string(t.Format("20060102150405"))
+	var linea = stringHora + ": " + data
+	log = escribirArchivoClientes("log.txt", linea)
 
 	return log
 }
