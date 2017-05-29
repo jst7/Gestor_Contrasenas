@@ -1,8 +1,8 @@
 # Gestor de Contraseñas
-###Indice
-####Otras alternativas
+### Indice
+#### Otras alternativas
 
-####Nuesstra Práctica
+#### Nuesstra Práctica
 
 - Certificados
 - Comunicación		
