@@ -332,7 +332,7 @@ func modificarCuentas() {
 	var listCuentasdisponbls []cuenta
 
 	UsuarioConectado.Cuentas = nil
-	pet := peticion{"actualizarCuenta", "null", UsuarioConectado, nil, ""}
+	pet := peticion{"actualizarCuenta", sesionUsuario.Valor, UsuarioConectado, nil, ""}
 
 	var peti = peticionToJSON(pet)
 	var comunicacionDel = comunicacion(peti)
@@ -393,7 +393,7 @@ func modificarCuentas() {
 
 	nuevaListaCuentas = append(nuevaListaCuentas, cuentaModificada)
 	UsuarioConectado.Cuentas = nuevaListaCuentas
-	peticionActu := peticion{"actualizarCuenta", "null", UsuarioConectado, nuevaListaCuentas, ""}
+	peticionActu := peticion{"actualizarCuenta", sesionUsuario.Valor, UsuarioConectado, nuevaListaCuentas, ""}
 
 	var petiActu = peticionToJSON(peticionActu)
 	var comunicacionActu = comunicacion(petiActu)
@@ -414,7 +414,7 @@ func borrarCuentaServicio() {
 	var listCuentasdisponbls []cuenta
 
 	UsuarioConectado.Cuentas = nil
-	pet := peticion{"delcuentas", "null", UsuarioConectado, nil, ""}
+	pet := peticion{"delcuentas", sesionUsuario.Valor, UsuarioConectado, nil, ""}
 
 	var peti = peticionToJSON(pet)
 	var comunicacionDel = comunicacion(peti)
@@ -437,7 +437,7 @@ func borrarCuentaServicio() {
 		}
 	}
 	UsuarioConectado.Cuentas = nuevaListaCuentas
-	peticionActu := peticion{"delcuentas", "null", UsuarioConectado, nuevaListaCuentas, ""}
+	peticionActu := peticion{"delcuentas", sesionUsuario.Valor, UsuarioConectado, nuevaListaCuentas, ""}
 
 	var petiActu = peticionToJSON(peticionActu)
 	var comunicacionActu = comunicacion(petiActu)
