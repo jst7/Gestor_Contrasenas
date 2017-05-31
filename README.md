@@ -118,8 +118,8 @@ type peticion struct {
 }
 type respuesta struct {
 	Estado     string `json:"estado"`
-	Cookie     string `json:"cookie"`     //o token segun lo que implemente fran
-	TipoCuerpo string `json:"tipocuerpo"` //tipo de dato del cuerpo
+	Cookie     string `json:"cookie"`     
+	TipoCuerpo string `json:"tipocuerpo"`![]()
 	Cuerpo     []byte `json:"respuesta"`
 }
 
@@ -315,3 +315,6 @@ sudo ./cliente
 `
 sudo ./servidor
 `
+
+![Servidor Arrancado](./imagenes/servidor1.png)
+![cliente Arrancado](./imagenes/cliente1.png)

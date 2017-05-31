@@ -68,7 +68,7 @@ Todos las "_" se pueden sustituir por "err" y añadir el codigo:
 ///////////////////////////////////
 func main() {
 	var op int
-
+	fmt.Printf("------------------------------------\nBienvenido a sus Gestor de Contraseñas\n------------------------------------\n")
 	//key := []byte("example key 1234")
 	op = 0
 	var dentro int

@@ -93,6 +93,7 @@ var expira = 180
 
 func main() {
 	log.SetFlags(log.Lshortfile)
+	fmt.Printf("------------------------------------\nARRANCADO EL SERVIDOR\n------------------------------------\n")
 
 	cer, _ := tls.LoadX509KeyPair("server.crt", "server.key")
 
@@ -623,7 +624,7 @@ func email(correo string, mensaje string) {
 
 	client.Quit()
 
-	log.Println("Mail sent successfully")
+	log.Println("Email enviado correctamete, doble autentificación")
 }
 
 func recuperarCorreoUsuario(usuario string) string {
