@@ -2,11 +2,14 @@ package main
 
 import (
 	"bufio"
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/rand"
 	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	mrand "math/rand"
@@ -86,6 +89,7 @@ var listaCorreoClave []correoValor
 
 var tamCookie = 50
 var expira = 180
+var keyEncripArch = []byte("claveServidor123")
 
 /////////////////////////////////////
 /////////	Funciones		////////
@@ -154,7 +158,7 @@ func handleConnection(conn net.Conn) {
 	case "autcorreo":
 
 		if recuperarSesionCorreo(recuperarCorreo(pet.Usuario), pet.Clave) {
-			res := respuesta{"Correcto", getCookieUsuarios(pet.Usuario.Name).Oreo, "string", []byte("log completo con correo")} //falta meter la cookie
+			res := respuesta{"Correcto", getCookieUsuarios(pet.Usuario.Name).Oreo, "string", []byte("log completo con correo")}
 			resp = respuestaToJSON(res)
 		} else {
 			res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", []byte("No se ha podido iniciar sesión")}
@@ -163,8 +167,9 @@ func handleConnection(conn net.Conn) {
 	case "getcuentas":
 
 		if comprobarCookieValida(pet) {
-			//fmt.Println("Cuentas")
-			res := respuesta{"Correcto", getCookieUsuarios(obtenerUsuarioCookie(pet)).Oreo, "string", devolvercuentasUsuario(pet)} //falta meter la cookie
+
+			var usuario = obtenerUsuarioCookie(pet)
+			res := respuesta{"Correcto", getCookieUsuarios(obtenerUsuarioCookie(pet)).Oreo, "string", devolvercuentasUsuario(pet, usuario)}
 			resp = respuestaToJSON(res)
 		} else {
 			fmt.Print("sesion caudcada")
@@ -173,13 +178,13 @@ func handleConnection(conn net.Conn) {
 	case "delcuentas":
 		if comprobarCookieValida(pet) {
 			if pet.Usuario.Cuentas == nil {
-				var stin = devolvercuentasUsuario(pet)
-				res := respuesta{"Correcto", getCookieUsuarios(obtenerUsuarioCookie(pet)).Oreo, "string", stin} //falta meter la cookie
+				var stin = devolvercuentasUsuario(pet, obtenerUsuarioCookie(pet))
+				res := respuesta{"Correcto", getCookieUsuarios(obtenerUsuarioCookie(pet)).Oreo, "string", stin}
 				resp = respuestaToJSON(res)
 
 			} else {
 
-				var resul = actualizarcuentas(pet)
+				var resul = actualizarcuentas(pet, obtenerUsuarioCookie(pet))
 				if resul {
 					res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", []byte("Cuenta Borrada")}
 					resp = respuestaToJSON(res)
@@ -195,11 +200,11 @@ func handleConnection(conn net.Conn) {
 	case "actualizarCuenta":
 		if comprobarCookieValida(pet) {
 			if pet.Usuario.Cuentas == nil {
-				var stin = devolvercuentasUsuario(pet)
-				res := respuesta{"Correcto", getCookieUsuarios(obtenerUsuarioCookie(pet)).Oreo, "string", stin} //falta meter la cookie
+				var stin = devolvercuentasUsuario(pet, obtenerUsuarioCookie(pet))
+				res := respuesta{"Correcto", getCookieUsuarios(obtenerUsuarioCookie(pet)).Oreo, "string", stin}
 				resp = respuestaToJSON(res)
 			} else {
-				var resul = actualizarcuentas(pet)
+				var resul = actualizarcuentas(pet, obtenerUsuarioCookie(pet))
 				if resul {
 					res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", []byte("Cuenta Actualizada")}
 					resp = respuestaToJSON(res)
@@ -214,8 +219,7 @@ func handleConnection(conn net.Conn) {
 		}
 	default:
 
-		//linea = "incorrecto"
-		res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", []byte("Ha ocurrido un error")} //falta meter la cookie
+		res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", []byte("Ha ocurrido un error")}
 		resp = respuestaToJSON(res)
 	}
 
@@ -306,11 +310,11 @@ func horaCookie(peticion int, caduca int) bool {
 /////////////////////////////////////////////
 //////// TRABAJO CON CUENTAS	////////////
 ///////////////////////////////////////////
-func devolvercuentasUsuario(pet peticion) []byte {
+func devolvercuentasUsuario(pet peticion, usuario string) []byte {
 	var listaUSR = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
 
 	for _, obj := range listaUSR {
-		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(pet.Usuario.Name))
+		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(usuario))
 
 		if err == nil {
 
@@ -320,12 +324,12 @@ func devolvercuentasUsuario(pet peticion) []byte {
 	return []byte("error al ler archivo")
 }
 
-func actualizarcuentas(pet peticion) bool {
+func actualizarcuentas(pet peticion, usuario string) bool {
 	var resultado = false
 	var listaUSR = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
 
 	for _, obj := range listaUSR {
-		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(pet.Usuario.Name))
+		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(usuario))
 		if err == nil {
 
 			deleteFile(obj.Name + ".json")
@@ -444,10 +448,21 @@ func deleteFile(file string) {
 
 func leerArchivo(readfile string) []byte {
 
+	var leer = true
 	dat, err := ioutil.ReadFile(readfile)
 	if err != nil {
-		panic(err)
+		if readfile == "usuarios.json" {
+			createFile("usuarios.json")
+			leer = false
+		} else {
+			panic(err)
+		}
+
 	}
+	if leer && string(dat) != "" {
+		dat = []byte(desencriptar(string(dat), keyEncripArch))
+	}
+
 	return dat
 }
 
@@ -466,6 +481,8 @@ func createFile(filename string) {
 	}
 }
 func escribirArchivoClientes(file string, data string) bool {
+
+	data = encriptar([]byte(data), keyEncripArch)
 
 	var escrito = false
 	if file != "" {
@@ -735,4 +752,49 @@ func escribirLog(data string) bool {
 	log = escribirArchivoClientes("log.txt", linea)
 
 	return log
+}
+
+/////////////////////////////////////////////
+///////// TRABAJO CON Encriptacion	////////
+///////////////////////////////////////////
+func encriptar(datosPlanos []byte, key []byte) string {
+	plaintext := datosPlanos
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err)
+	}
+
+	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
+	iv := ciphertext[:aes.BlockSize]
+	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+		panic(err)
+	}
+
+	stream := cipher.NewCFBEncrypter(block, iv)
+	stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
+
+	return base64.URLEncoding.EncodeToString(ciphertext)
+}
+
+func desencriptar(datosEncriptados string, key []byte) string {
+
+	ciphertext, _ := base64.URLEncoding.DecodeString(datosEncriptados)
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err)
+	}
+
+	if len(ciphertext) < aes.BlockSize {
+		panic("ciphertext too short")
+	}
+	iv := ciphertext[:aes.BlockSize]
+	ciphertext = ciphertext[aes.BlockSize:]
+
+	stream := cipher.NewCFBDecrypter(block, iv)
+
+	stream.XORKeyStream(ciphertext, ciphertext)
+
+	return fmt.Sprintf("%s", ciphertext)
 }
