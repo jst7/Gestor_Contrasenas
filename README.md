@@ -1,19 +1,23 @@
 # Gestor de Contraseñas
 ### Indice
-#### Otras alternativas
+#### Otras alternativas FRAN
 
 #### Nuesstra Práctica
 
-- Certificados
-- Comunicación		
+- Certificados JORGE x
+- Comunicación JORGE x
+- Usuarios y cuentas MOLPE	
 - Optativo
-	- Doble autentificación con Correo
-	- Conocimiento 0
-	- Log de la aplicación Servidor
-		
-- Metodología de trabajo
-- Puesta en marcha
+	- Doble autentificación con Correo JORGE x
+	- Conocimiento 0 JORGE 
+	- Log de la aplicación Servidor JORGE x
+	- Información adicional Usuarios MOLPE
+	- Cifrado archivos con contraseña maestra MOLPE
+- Metodología de trabajo FRAN
+- Puesta en marcha JORGE x
+- Ejemplo de ejecución FRAN
 
+___
 	
 ## Otras alternativas
 ## Nuestra Práctica
