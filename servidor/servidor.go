@@ -637,6 +637,14 @@ func recuperarCorreoUsuario(usuario string) string {
 
 			key := mrand.Intn(9999)
 			valor := correoValor{obj.Correo, strconv.Itoa(key)}
+
+			for i := range listaCorreoClave {
+				if listaCorreoClave[i].Correo == obj.Correo {
+					listaCorreoClave[i].clave = strconv.Itoa(key)
+					return obj.Correo
+				}
+			}
+
 			listaCorreoClave = append(listaCorreoClave, valor)
 			return obj.Correo
 		}
