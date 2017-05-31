@@ -11,9 +11,7 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"strconv"
 	"strings"
-	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -49,7 +47,6 @@ type respuesta struct {
 
 type cookieIniciado struct {
 	Valor string `json:"valor"`
-	Hora  int    `json:"hora"`
 }
 
 var sesionUsuario cookieIniciado
@@ -274,11 +271,7 @@ func pedirclave() bool {
 
 	if respuesta.Estado == "Correcto" { //"----------------\nSesión Iniciada\n----------------" {
 
-		t := time.Now()
-		var stringHora = string(t.Format("20060102150405"))
-		enteroHora, _ := strconv.Atoi(stringHora)
 		//SESIÓN
-		sesionUsuario.Hora = enteroHora
 		sesionUsuario.Valor = respuesta.Cookie
 
 		if claveCorreo(nombre + contraseña) {
@@ -304,7 +297,7 @@ func listarCuentas() {
 	var listCuentasdisponbls []cuenta
 	UsuarioConectado.Cuentas = nil
 
-	pet := peticion{"getcuentas", "null", UsuarioConectado, nil, ""}
+	pet := peticion{"getcuentas", sesionUsuario.Valor, UsuarioConectado, nil, ""}
 
 	var peti = peticionToJSON(pet)
 	var comunicacionDel = comunicacion(peti)

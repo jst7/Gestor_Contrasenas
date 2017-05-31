@@ -140,7 +140,7 @@ func handleConnection(conn net.Conn) {
 
 		if recuperarSesion(pet) {
 			//"----------------\nSesión Iniciada\n----------------"
-			fmt.Println(listaCookies)
+			//fmt.Println(listaCookies)
 			res := respuesta{"Correcto", getCookieUsuarios(pet.Usuario.Name).Oreo, "string", []byte("log completo")} //falta meter la cookie
 			email(recuperarCorreoUsuario(pet.Usuario.Name), recuperarClave(recuperarCorreoUsuario(pet.Usuario.Name)))
 			resp = respuestaToJSON(res)
@@ -164,44 +164,53 @@ func handleConnection(conn net.Conn) {
 
 		if comprobarCookieValida(pet) {
 			//fmt.Println("Cuentas")
-			res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", devolvercuentasUsuario(pet)} //falta meter la cookie
+			res := respuesta{"Correcto", getCookieUsuarios(obtenerUsuarioCookie(pet)).Oreo, "string", devolvercuentasUsuario(pet)} //falta meter la cookie
 			resp = respuestaToJSON(res)
+		} else {
+			fmt.Print("sesion caudcada")
 		}
 
 	case "delcuentas":
-
-		if pet.Usuario.Cuentas == nil {
-			var stin = devolvercuentasUsuario(pet)
-			res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", stin} //falta meter la cookie
-			resp = respuestaToJSON(res)
-
-		} else {
-
-			var resul = actualizarcuentas(pet)
-			if resul {
-				res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", []byte("Cuenta Borrada")}
+		if comprobarCookieValida(pet) {
+			if pet.Usuario.Cuentas == nil {
+				var stin = devolvercuentasUsuario(pet)
+				res := respuesta{"Correcto", getCookieUsuarios(obtenerUsuarioCookie(pet)).Oreo, "string", stin} //falta meter la cookie
 				resp = respuestaToJSON(res)
+
 			} else {
-				res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", []byte("Cuenta no borrada")}
-				resp = respuestaToJSON(res)
+
+				var resul = actualizarcuentas(pet)
+				if resul {
+					res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", []byte("Cuenta Borrada")}
+					resp = respuestaToJSON(res)
+				} else {
+					res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", []byte("Cuenta no borrada")}
+					resp = respuestaToJSON(res)
+				}
 			}
+		} else {
+			fmt.Print("sesion caudcada")
 
 		}
 	case "actualizarCuenta":
-
-		if pet.Usuario.Cuentas == nil {
-			var stin = devolvercuentasUsuario(pet)
-			res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", stin} //falta meter la cookie
-			resp = respuestaToJSON(res)
-		} else {
-			var resul = actualizarcuentas(pet)
-			if resul {
-				res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", []byte("Cuenta Actualizada")}
+		if comprobarCookieValida(pet) {
+			if pet.Usuario.Cuentas == nil {
+				var stin = devolvercuentasUsuario(pet)
+				res := respuesta{"Correcto", getCookieUsuarios(obtenerUsuarioCookie(pet)).Oreo, "string", stin} //falta meter la cookie
 				resp = respuestaToJSON(res)
 			} else {
-				res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", []byte("Cuenta no Actualizada")}
-				resp = respuestaToJSON(res)
+				var resul = actualizarcuentas(pet)
+				if resul {
+					res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", []byte("Cuenta Actualizada")}
+					resp = respuestaToJSON(res)
+				} else {
+					res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", []byte("Cuenta no Actualizada")}
+					resp = respuestaToJSON(res)
+				}
 			}
+		} else {
+			fmt.Print("sesion caudcada")
+
 		}
 	default:
 
@@ -354,7 +363,7 @@ func iniciarSesion(usuario usuarioBD) bool {
 
 	var entra = false
 	for _, obj := range listaUSR {
-		print("Comprobar sesion1: " + obj.Name + " " + usuario.Name)
+		//print("Comprobar sesion1: " + obj.Name + " " + usuario.Name)
 		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(usuario.Name))
 		if err == nil {
 			//hacemos la cookie
@@ -366,7 +375,7 @@ func iniciarSesion(usuario usuarioBD) bool {
 			listaCookies = append(listaCookies, n)
 
 			entra = true
-			println("hola entro")
+			//println("hola entro")
 		}
 	}
 	return entra
@@ -692,7 +701,7 @@ func recuperarCorreo(user usuario) string {
 	var listaUSR = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
 
 	for _, obj := range listaUSR {
-		print("Comprobar sesion2: " + obj.Name + " " + user.Name)
+		//print("Comprobar sesion2: " + obj.Name + " " + user.Name)
 		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(user.Name))
 		if err == nil {
 			return obj.Correo
@@ -703,9 +712,9 @@ func recuperarCorreo(user usuario) string {
 
 func recuperarSesionCorreo(correo string, clave string) bool {
 
-	fmt.Println("Correo: " + correo)
-	fmt.Println("Clave: " + clave)
-	fmt.Println(listaCorreoClave)
+	//fmt.Println("Correo: " + correo)
+	//fmt.Println("Clave: " + clave)
+	//fmt.Println(listaCorreoClave)
 	for _, obj := range listaCorreoClave {
 		if obj.Correo == correo && obj.clave == clave {
 			return true
