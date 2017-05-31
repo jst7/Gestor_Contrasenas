@@ -253,8 +253,32 @@ func getCookieUsuarios(usuario string) cookie {
 }
 
 func comprobarCookieValida(pet peticion) bool {
-	//realizar para trabajar con cookies y establecer el usuario
-	return true
+
+	t := time.Now()
+	var stringHora = string(t.Format("20060102150405"))
+	enteroHora, _ := strconv.Atoi(stringHora)
+
+	for i := range listaCookies {
+		if listaCookies[i].Oreo == pet.Cookie {
+			if horaCookie(enteroHora, listaCookies[i].Expira) {
+				listaCookies[i].Expira = enteroHora
+				return true
+			}
+		} else {
+			return false
+		}
+	}
+	return false
+}
+
+func obtenerUsuarioCookie(pet peticion) string {
+	for i := range listaCookies {
+		if listaCookies[i].Oreo == pet.Cookie {
+			return listaCookies[i].Usuario
+		}
+	}
+
+	return ""
 }
 
 //compara si la hora actual es anterior que la del expire de la cookie pasada por parametro
