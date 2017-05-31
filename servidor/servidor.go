@@ -172,8 +172,7 @@ func handleConnection(conn net.Conn) {
 
 		if comprobarCookieValida(pet) {
 
-			var usuario = obtenerUsuarioCookie(pet)
-			res := respuesta{"Correcto", getCookieUsuarios(obtenerUsuarioCookie(pet)).Oreo, "string", devolvercuentasUsuario(pet, usuario)}
+			res := respuesta{"Correcto", getCookieUsuarios(obtenerUsuarioCookie(pet)).Oreo, "string", devolvercuentasUsuario(pet)}
 			resp = respuestaToJSON(res)
 		} else {
 			fmt.Print("sesion caudcada")
@@ -182,13 +181,13 @@ func handleConnection(conn net.Conn) {
 	case "delcuentas":
 		if comprobarCookieValida(pet) {
 			if pet.Usuario.Cuentas == nil {
-				var stin = devolvercuentasUsuario(pet, obtenerUsuarioCookie(pet))
+				var stin = devolvercuentasUsuario(pet)
 				res := respuesta{"Correcto", getCookieUsuarios(obtenerUsuarioCookie(pet)).Oreo, "string", stin}
 				resp = respuestaToJSON(res)
 
 			} else {
 
-				var resul = actualizarcuentas(pet, obtenerUsuarioCookie(pet))
+				var resul = actualizarcuentas(pet)
 				if resul {
 					res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", []byte("Cuenta Borrada")}
 					resp = respuestaToJSON(res)
@@ -204,11 +203,11 @@ func handleConnection(conn net.Conn) {
 	case "actualizarCuenta":
 		if comprobarCookieValida(pet) {
 			if pet.Usuario.Cuentas == nil {
-				var stin = devolvercuentasUsuario(pet, obtenerUsuarioCookie(pet))
+				var stin = devolvercuentasUsuario(pet)
 				res := respuesta{"Correcto", getCookieUsuarios(obtenerUsuarioCookie(pet)).Oreo, "string", stin}
 				resp = respuestaToJSON(res)
 			} else {
-				var resul = actualizarcuentas(pet, obtenerUsuarioCookie(pet))
+				var resul = actualizarcuentas(pet)
 				if resul {
 					res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", []byte("Cuenta Actualizada")}
 					resp = respuestaToJSON(res)
@@ -314,11 +313,11 @@ func horaCookie(peticion int, caduca int) bool {
 /////////////////////////////////////////////
 //////// TRABAJO CON CUENTAS	////////////
 ///////////////////////////////////////////
-func devolvercuentasUsuario(pet peticion, usuario string) []byte {
+func devolvercuentasUsuario(pet peticion) []byte {
 	var listaUSR = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
 
 	for _, obj := range listaUSR {
-		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(usuario))
+		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(pet.Usuario.Name))
 
 		if err == nil {
 
@@ -328,12 +327,12 @@ func devolvercuentasUsuario(pet peticion, usuario string) []byte {
 	return []byte("error al ler archivo")
 }
 
-func actualizarcuentas(pet peticion, usuario string) bool {
+func actualizarcuentas(pet peticion) bool {
 	var resultado = false
 	var listaUSR = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
 
 	for _, obj := range listaUSR {
-		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(usuario))
+		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(pet.Usuario.Name))
 		if err == nil {
 
 			deleteFile(obj.Name + ".json")
