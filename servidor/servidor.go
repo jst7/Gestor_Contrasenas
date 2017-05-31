@@ -152,13 +152,16 @@ func handleConnection(conn net.Conn) {
 		}
 
 	case "autcorreo":
-
-		if recuperarSesionCorreo(recuperarCorreo(pet.Usuario), pet.Clave) {
-			res := respuesta{"Correcto", getCookieUsuarios(pet.Usuario.Name).Oreo, "string", []byte("log completo con correo")} //falta meter la cookie
-			resp = respuestaToJSON(res)
+		if comprobarCookieValida(pet) {
+			if recuperarSesionCorreo(recuperarCorreo(pet.Usuario), pet.Clave) {
+				res := respuesta{"Correcto", getCookieUsuarios(pet.Usuario.Name).Oreo, "string", []byte("log completo con correo")} //falta meter la cookie
+				resp = respuestaToJSON(res)
+			} else {
+				res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", []byte("No se ha podido iniciar sesión")}
+				resp = respuestaToJSON(res)
+			}
 		} else {
-			res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", []byte("No se ha podido iniciar sesión")}
-			resp = respuestaToJSON(res)
+			fmt.Print("sesion caudcada")
 		}
 	case "getcuentas":
 
