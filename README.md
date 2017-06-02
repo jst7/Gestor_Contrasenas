@@ -240,7 +240,7 @@ func jSONtoCuentas(datos []byte) []cuenta {
 
 A continuación explicaremos la lógica que sigue la aplicación para el trabajo con cuentas de los usuarios.
 
-En primer lugar cabe hablar de que la aplicación tiene en el lado del servidor un archivo con la información de los usuarios que existen en la base de datos, este archivo contine una lista en JSON de los usuarios existentes, esto es debido a que cada usuario tiene su propio archivo de información de cuentas por ello es necesario controlar la existencia de usuarios por este archivo.El archivo en cuestion es "usuarios.json" todos los datos, nombres de estos usuarios estan cifrados.
+En primer lugar cabe hablar de que la aplicación tiene en el lado del servidor un archivo con la información de los usuarios que existen en la aplicacion, este archivo contine una lista en JSON de los usuarios existentes, esto es debido a que cada usuario tiene su propio archivo de información de cuentas por ello es necesario controlar la existencia de usuarios por este archivo.El archivo en cuestion es "usuarios.json" todos los datos, nombres de estos usuarios estan cifrados.
 
 ##### Creacion usuarios
 	
@@ -385,7 +385,7 @@ func creacionUsuarioPorPeticion(pet peticion) bool {
 }
 ```
 
-Aquí podemos ver como en la creacion del usuario lo que se realiza es comprobar si existe este usuario previamente en la bd, en caso de que exista se le comunica al cliente que no se ha podido crear su usuario ya que ya existe.
+Aquí podemos ver como en la creacion del usuario lo que se realiza es comprobar si existe este usuario previamente, en caso de que exista se le comunica al cliente que no se ha podido crear su usuario ya que ya existe.
 En caso de que no exista pasariamos a introducir este usuario en el archivo usuarios.json, el siguiente paso a realizar seria crear el documento con el nombre del usuario(encriptado) e introducimos en el las cuentas del usuario encriptadas.
 
 ### Parte optativa
