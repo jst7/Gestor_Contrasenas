@@ -158,11 +158,14 @@ type respuesta struct {
 ### Usuarios y cuentas
 
 Pasaremos a comentar el trabajo realizado para la gestion de usuarios en esta práctica, explicando esto en distintas secciones.
-####Usuarios
+
+#### Usuarios
 
 Los usuarios son una parte fundamental de la aplicación estos son los clientes de nuestra aplicacion, personas que quieren almacenar información sobre sus cuentas(login,contraseña y servicio).
-#####Estructura
+
+##### Estructura
 Para esto hemos definido una estructura tanto en cliente como en servidor:
+
 ###### cliente
 ```GO
 type usuario struct {
