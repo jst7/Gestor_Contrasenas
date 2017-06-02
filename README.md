@@ -1,6 +1,6 @@
 # Gestor de Contraseñas
 ### Indice
-#### Otras alternativas FRAN
+#### Otras alternativas FRAN X
 
 #### Nuesstra Práctica
 
@@ -20,6 +20,33 @@
 ___
 	
 ## Otras alternativas
+**Dashlane Password Manager**
+![Dashlane](./imagenes/Dashlane.png)
+Dashlane es una de las aplicaciones gratuitas para la gestión de contraseñas mejor posicionadas gracias a sus múltiples características y no está de más decir que en año 2015 fue elegida como una de las mejores aplicaciones por el Play Store y por el App Store.
+
+- Ofrece encriptación AES-256
+- Genera alertas de seguridad a través de correo electrónico o mensajes de texto
+- Incluye un generador de contraseñas seguras
+- Posee respaldo constante de las contraseñas
+
+**Keeper Password Manager**
+![Keeper](./imagenes/Keeper.png)
+Keeper es otra de las opciones gratuitas para ambientes Windows que nos ofrece una integridad y seguridad a la hora del manejo de nuestras contraseñas. Gracias a Keeper contaremos con una aplicación que ha sido desarrollada con los más altos estándares de seguridad ya que usa el cifrado AES-256 como base de encriptación.
+
+- Cuenta con un generador de contraseñas seguro
+- Cuenta con aplicación móvil y la posibilidad de usar el acceso con huella aumentado los niveles de seguridad
+- Incluye verificación en dos pasos gracias a la tecnología Keeper DNA®
+- Cuenta con encriptación AES-256 y PBKDF2
+
+**LastPass Password Manager**
+![LastPass](./imagenes/LastPass.png)
+Es una aplicación multiplaforma con la que todas nuestras contraseñas estarán seguras gracias a sus características avanzadas y niveles de encriptación AES-256.
+
+- Usa nivel de encriptación AES de 256 bits incluyendo algoritmos hash con sal y PBKDF2 SHA-256.
+- Posibilidad de compartir las contraseñas de forma segura
+- Cuenta con factor de autenticación de doble factor
+- Posee un generador de contraseñas
+
 ## Nuestra Práctica
 ### Certificados
 
