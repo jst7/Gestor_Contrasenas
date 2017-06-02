@@ -155,7 +155,7 @@ type respuesta struct {
 }
 
 ````
-###Usuarios y cuentas
+### Usuarios y cuentas
 
 Pasaremos a comentar el trabajo realizado para la gestion de usuarios en esta práctica, explicando esto en distintas secciones.
 ####Usuarios
@@ -163,7 +163,7 @@ Pasaremos a comentar el trabajo realizado para la gestion de usuarios en esta pr
 Los usuarios son una parte fundamental de la aplicación estos son los clientes de nuestra aplicacion, personas que quieren almacenar información sobre sus cuentas(login,contraseña y servicio).
 #####Estructura
 Para esto hemos definido una estructura tanto en cliente como en servidor:
-######cliente
+###### cliente
 ```GO
 type usuario struct {
 	Name    string   `json:"nombre"`
@@ -171,7 +171,7 @@ type usuario struct {
 	Cuentas []cuenta `json:"cuentas"`
 }
 ```
-######servidor
+###### servidor
 ```GO
 type usuario struct {
 	Name    string   `json:"nombre"`
@@ -182,7 +182,7 @@ type usuario struct {
 
 Como podemos ver comparten estructura tanto en cliente como servidor, esto es debido a que a la hora de trabajar en ambos casos es necesario que la estructura sea común, como por ejemplo para el trabajo en la conversion JSON.
 
-#####JSON usuarios
+##### JSON usuarios
 
 Dado que en esta práctica el almacenamiento se ha realizado en ficheros JSON nos es necesario realizar una transformación de los datos a almacenar en JSON.
 
@@ -206,7 +206,7 @@ Esta funcion realiza lo contrario, transforma el mensaje del JSON a una variable
 
 Otra parte a tener en cuenta es la estructura de las cuentas, las cuentas es el núcleo principal de la información del usuario, aqui es donde podemos encontrar toda la información sobre las cuentas(contraseña,login,servicio).
 
-#####Estructura cuentas
+##### Estructura cuentas
 
 ```GO
 type cuenta struct {
@@ -215,7 +215,7 @@ type cuenta struct {
 	Servicio   string `json:"servicio"`
 }
 ```
-#####JSON cuentas
+##### JSON cuentas
 
 Al igual que con los usuarios podemos ver que s eha trabajado el JSON tanto de transformación de la estructura a JSON como del JSON a la estructura.
 
@@ -233,17 +233,17 @@ func jSONtoCuentas(datos []byte) []cuenta {
 	return listadeCuentas
 }
 ```
-####Lógica trabajo usuario/cuentas
+#### Lógica trabajo usuario/cuentas
 
 A continuación explicaremos la lógica que sigue la aplicación para el trabajo con cuentas de los usuarios.
 
 En primer lugar cabe hablar de que la aplicación tiene en el lado del servidor un archivo con la información de los usuarios que existen en la base de datos, este archivo contine una lista en JSON de los usuarios existentes, esto es debido a que cada usuario tiene su propio archivo de información de cuentas por ello es necesario controlar la existencia de usuarios por este archivo.El archivo en cuestion es "usuarios.json" todos los datos, nombres de estos usuarios estan cifrados.
 
-#####Creacion usuarios
+##### Creacion usuarios
 	
 Los usuarios se crean mediante el cliente, en este cliente los usuarios deciden si crearse una cuenta y que nombre y contraseña tendrá, se le enviará una confirmación por correo al realizar acceso a sus datos mas adelante.
 	
-#####cliente
+##### cliente
 
 ```GO
 func crearUsuario() {
@@ -320,11 +320,11 @@ func crearUsuario() {
 
 Como podemos ver en el codigo anterior se le pide al usuario que introduzca sus datos(nombre contraseña y correo) y se le pregunta si quiere añadir cuentas.Después se cifra esta información y se pasa a realizar la comunicacion con el servidor.
 
-#####Servidor
+##### Servidor
 
 El servidor recibe la peticion de creación y pasa a crear el usuario, introduciendo en el archivo usuarios.json a este nuevo usuario y creando el archivo propio del usuario con sus datos.
 
-######Tratamiento peticion servidor
+###### Tratamiento peticion servidor
 ```GO
 	case "crearUsuario":
 		if creacionUsuarioPorPeticion(pet) {
@@ -339,7 +339,7 @@ El servidor recibe la peticion de creación y pasa a crear el usuario, introduci
 			resp = respuestaToJSON(res)
 		}
 ```
-######Creacion usuario
+###### Creacion usuario
 ```GO
 func creacionUsuarioPorPeticion(pet peticion) bool {
 	var correcto = false
