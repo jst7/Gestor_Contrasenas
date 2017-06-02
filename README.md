@@ -235,6 +235,156 @@ func jSONtoCuentas(datos []byte) []cuenta {
 ```
 ####Lógica trabajo usuario/cuentas
 
+A continuación explicaremos la lógica que sigue la aplicación para el trabajo con cuentas de los usuarios.
+
+En primer lugar cabe hablar de que la aplicación tiene en el lado del servidor un archivo con la información de los usuarios que existen en la base de datos, este archivo contine una lista en JSON de los usuarios existentes, esto es debido a que cada usuario tiene su propio archivo de información de cuentas por ello es necesario controlar la existencia de usuarios por este archivo.El archivo en cuestion es "usuarios.json" todos los datos, nombres de estos usuarios estan cifrados.
+
+#####Creacion usuarios
+	
+Los usuarios se crean mediante el cliente, en este cliente los usuarios deciden si crearse una cuenta y que nombre y contraseña tendrá, se le enviará una confirmación por correo al realizar acceso a sus datos mas adelante.
+	
+#####cliente
+
+```GO
+func crearUsuario() {
+
+	//Datos de usuario
+	var nombre string
+	var correo string
+	var contraseñaUsuario string
+	var contes []cuenta
+
+	//Datos de cuenta
+	var usuarioNombre string
+	var contraseñaCuenta string
+	var servicio string
+
+	//Booleano de añadir cuenta
+	var crear string
+
+	//Datos de Usuario
+	println("Nombre del usuario")
+	fmt.Scanf("%s\n", &nombre)
+
+	println("Contraseña")
+	fmt.Scanf("%s\n", &contraseñaUsuario)
+
+	println("Correo del usuario")
+	fmt.Scanf("%s\n", &correo)
+
+	//Añadir primera cuenta
+	println("¿Deseas añadir una cuenta?")
+	fmt.Scanf("%s\n", &crear)
+
+	//key del usuario
+	var key []byte
+	key = obtenerkeyUsuario(contraseñaUsuario)
+	keyuser = key
+	if crear == "si" {
+		for crear != "no" {
+			println("Usuario:")
+			fmt.Scanf("%s\n", &usuarioNombre)
+			println("Contraseña:")
+			fmt.Scanf("%s\n", &contraseñaCuenta)
+			println("Servicio:")
+			fmt.Scanf("%s\n", &servicio)
+			n := cuenta{encriptar([]byte(usuarioNombre), key), encriptar([]byte(contraseñaCuenta), key), encriptar([]byte(servicio), key)}
+			contes = append(contes, n)
+			println("¿Deseas añadir otra cuenta?")
+			fmt.Scanf("%s\n", &crear)
+		}
+	}
+
+	//
+	//HASH USUARIO CONTRASEÑA
+	//
+	password := []byte(nombre + contraseñaUsuario)
+	// Hashing the password with the default cost of 10
+	hashedPassword, _ := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+
+	for strings.Contains(string(hashedPassword), "/") { //Lo realizamos para que no genere con / ya que a la hora de directorios da problemas
+		hashedPassword, _ = bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+	}
+	//fmt.Println(string(hashedPassword))
+	nombre = string(hashedPassword)
+	//
+	//HASH USUARIO CONTRASEÑA
+	//
+
+	user := usuario{nombre, correo, contes}
+	pet := peticion{"crearUsuario", "null", user, nil, ""}
+	var peti = peticionToJSON(pet)
+	comunicacion(peti)
+	}
+```
+
+Como podemos ver en el codigo anterior se le pide al usuario que introduzca sus datos(nombre contraseña y correo) y se le pregunta si quiere añadir cuentas.Después se cifra esta información y se pasa a realizar la comunicacion con el servidor.
+
+#####Servidor
+
+El servidor recibe la peticion de creación y pasa a crear el usuario, introduciendo en el archivo usuarios.json a este nuevo usuario y creando el archivo propio del usuario con sus datos.
+
+######Tratamiento peticion servidor
+```GO
+	case "crearUsuario":
+		if creacionUsuarioPorPeticion(pet) {
+			// "----------------\nUsuario Creado\n----------------"
+
+			res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", []byte("Usuario creado correctamente")} //falta meter la cookie
+			resp = respuestaToJSON(res)
+
+		} else {
+			// "----------------\nUsuario ya Existente\n----------------"
+			res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", []byte("Usuario no creado, ya existe un usuario")}
+			resp = respuestaToJSON(res)
+		}
+```
+######Creacion usuario
+```GO
+func creacionUsuarioPorPeticion(pet peticion) bool {
+	var correcto = false
+	var usuarios = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
+	var usuarioNuevo usuarioBD
+	usuarioNuevo.Name = pet.Usuario.Name
+	usuarioNuevo.Correo = pet.Usuario.Correo
+	//println("AQUI " + pet.Usuario.Name)
+
+	if !comprobarExistenciaUSR(usuarios, usuarioNuevo) {
+		//println("ENTRA")
+		var nombre string
+
+		nombre = pet.Usuario.Name
+
+		deleteFile("usuarios.json")
+		createFile("usuarios.json")
+		usuarioNuevo.Name = nombre
+		var nuevalista = append(usuarios, usuarioNuevo)
+		if escribirArchivoClientes("usuarios.json", string(usuariosBDToJSON(nuevalista))) {
+			createFile(nombre + ".json")
+			if pet.Usuario.Cuentas != nil {
+				if escribirArchivoClientes(nombre+".json", string(cuentasToJSON(pet.Usuario.Cuentas))) {
+					correcto = true
+				} else {
+					correcto = false
+				}
+			} else {
+				if escribirArchivoClientes(nombre+".json", "[]") {
+					correcto = true
+				} else {
+					correcto = false
+				}
+			}
+		}
+		setCookie(tamCookie)
+	}
+
+	return correcto
+}
+```
+
+Aquí podemos ver como en la creacion del usuario lo que se realiza es comprobar si existe este usuario previamente en la bd, en caso de que exista se le comunica al cliente que no se ha podido crear su usuario ya que ya existe.
+En caso de que no exista pasariamos a introducir este usuario en el archivo usuarios.json, el siguiente paso a realizar seria crear el documento con el nombre del usuario(encriptado) e introducimos en el las cuentas del usuario encriptadas.
+
 ### Parte optativa
 
 #### Doble autentificación con Correo
