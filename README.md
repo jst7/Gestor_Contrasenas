@@ -2,7 +2,7 @@
 ### Indice
 #### Otras alternativas FRAN X
 
-#### Nuesstra Práctica
+#### Nuestra Práctica
 
 - Certificados JORGE x
 - Comunicación JORGE x
@@ -155,6 +155,86 @@ type respuesta struct {
 }
 
 ````
+###Usuarios y cuentas
+
+Pasaremos a comentar el trabajo realizado para la gestion de usuarios en esta práctica, explicando esto en distintas secciones.
+####Usuarios
+
+Los usuarios son una parte fundamental de la aplicación estos son los clientes de nuestra aplicacion, personas que quieren almacenar información sobre sus cuentas(login,contraseña y servicio).
+#####Estructura
+Para esto hemos definido una estructura tanto en cliente como en servidor:
+######cliente
+```GO
+type usuario struct {
+	Name    string   `json:"nombre"`
+	Correo  string   `json:"correo"`
+	Cuentas []cuenta `json:"cuentas"`
+}
+```
+######servidor
+```GO
+type usuario struct {
+	Name    string   `json:"nombre"`
+	Correo  string   `json:"correo"`
+	Cuentas []cuenta `json:"cuentas"`
+}
+```
+
+Como podemos ver comparten estructura tanto en cliente como servidor, esto es debido a que a la hora de trabajar en ambos casos es necesario que la estructura sea común, como por ejemplo para el trabajo en la conversion JSON.
+
+#####JSON usuarios
+
+Dado que en esta práctica el almacenamiento se ha realizado en ficheros JSON nos es necesario realizar una transformación de los datos a almacenar en JSON.
+
+```GO
+func usuarioToJSON(user usuario) []byte { //Crear el json
+	resultado, _ := json.Marshal(user)
+	return resultado
+}
+```
+Esta función está en el lado del cliente dado que los datos que recibe el servidor estarán listos para ser escritos en el fichero para más seguridad del sistema.
+
+```GO
+func jSONtoUsuario(user []byte) usuario { //desjoson
+	var usuarioDescifrado usuario
+	json.Unmarshal(user, &usuarioDescifrado)
+	return usuarioDescifrado
+}
+```
+Esta funcion realiza lo contrario, transforma el mensaje del JSON a una variable del tipo usuario.
+####Cuentas
+
+Otra parte a tener en cuenta es la estructura de las cuentas, las cuentas es el núcleo principal de la información del usuario, aqui es donde podemos encontrar toda la información sobre las cuentas(contraseña,login,servicio).
+
+#####Estructura cuentas
+
+```GO
+type cuenta struct {
+	Usuario    string `json:"usuario"`
+	Contraseña string `json:"contraseña"`
+	Servicio   string `json:"servicio"`
+}
+```
+#####JSON cuentas
+
+Al igual que con los usuarios podemos ver que s eha trabajado el JSON tanto de transformación de la estructura a JSON como del JSON a la estructura.
+
+```GO
+func cuentasToJSON(cuent []cuenta) []byte { //Crear el json
+	resultado, _ := json.Marshal(cuent)
+	return resultado
+}
+```
+
+```GO
+func jSONtoCuentas(datos []byte) []cuenta {
+	var listadeCuentas []cuenta
+	json.Unmarshal(datos, &listadeCuentas)
+	return listadeCuentas
+}
+```
+####Lógica trabajo usuario/cuentas
+
 ### Parte optativa
 
 #### Doble autentificación con Correo
