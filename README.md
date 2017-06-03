@@ -489,6 +489,68 @@ func creacionUsuarioPorPeticion(pet peticion) bool {
 Aquí podemos ver como en la creacion del usuario lo que se realiza es comprobar si existe este usuario previamente, en caso de que exista se le comunica al cliente que no se ha podido crear su usuario ya que ya existe.
 En caso de que no exista pasariamos a introducir este usuario en el archivo usuarios.json, el siguiente paso a realizar seria crear el documento con el nombre del usuario(encriptado) e introducimos en el las cuentas del usuario encriptadas.
 
+##### Gestión de cuentas
+
+Hablaremos aquí de como se le ofrece al usuario gestionar sus cuentas. Una vez creada una la cuenta en nuestra aplicación el usuario se puede loggear, cuando el usuario se ha logeado satisfactoriamente puede elegir gestionar sus cuentas pudiendo borrar,modificar y listar estas cuentas.
+
+###### Listar Cuentas
+
+Ofrecemos al usuario la posibilidad de listar sus cuentas disponibles obteniendo la informacion sobre todas sus cuentas.
+Podemos ver que si el usuario accede a la opción de listar las cuentas en el cliente se realiza una petición al servidor de la siguiente manera.
+
+```GO
+func listarCuentas() {
+
+	var listCuentasdisponbls []cuenta
+	UsuarioConectado.Cuentas = nil
+
+	pet := peticion{"getcuentas", sesionUsuario.Valor, UsuarioConectado, nil, ""}
+
+	var peti = peticionToJSON(pet)
+	var comunicacionDel = comunicacion(peti)
+	var respuesta = jSONtoRespuesta([]byte(comunicacionDel))
+	cuentasRespuesta := jSONtoCuentas(respuesta.Cuerpo)
+	for _, obj := range cuentasRespuesta {
+		listCuentasdisponbls = append(listCuentasdisponbls, cuenta{desencriptar(obj.Usuario, keyuser), desencriptar(obj.Contraseña, keyuser), desencriptar(obj.Servicio, keyuser)})
+	}
+	listaCuentas(listCuentasdisponbls)
+}
+```
+
+El servidor recibe esta petición por medio del menu de conexión.
+
+```GO
+case "getcuentas":
+
+		if comprobarCookieValida(pet) {
+
+			res := respuesta{"Correcto", getCookieUsuarios(obtenerUsuarioCookie(pet)).Oreo, "string", devolvercuentasUsuario(pet)}
+			resp = respuestaToJSON(res)
+		} else {
+			fmt.Print("sesion caudcada")
+		}
+```
+
+y realiza la siguiente gestión para leer el archivo del cliente que al estar cifrado necesitará descifrarlo(sin descifrar sus datos) ya que tenemos un doble cifrado(de datos y del archivo completo).
+
+```GO
+func devolvercuentasUsuario(pet peticion) []byte {
+	var listaUSR = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
+
+	for _, obj := range listaUSR {
+		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(pet.Usuario.Name))
+
+		if err == nil {
+
+			return leerArchivo(obj.Name + ".json")
+		}
+	}
+	return []byte("error al ler archivo")
+}
+```
+
+El cliente será el encargado de descifrar los datos que recibe del servidor y mostrárselo al cliente.
+
 ### Parte optativa
 
 #### Doble autentificación con Correo
