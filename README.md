@@ -238,7 +238,23 @@ func desencriptar(datosEncriptados string, key []byte) string {
 }
 
 ```
-Como observamos pasamos el texto a cifrar o descifrar y la clave para realizar el trabajo.
+Como observamos pasamos el texto a cifrar o descifrar y la clave para realizar el trabajo. Para la clave usamos la clave que de el usuario y la completamos con 0 al final hasta llegar a 16 carácteres.
+
+```GO
+
+func obtenerkeyUsuario(contraseña string) []byte {
+	var salida string
+	salida = contraseña
+	for {
+		if len(salida) == 16 {
+			return []byte(salida)
+		} else {
+			salida = salida + "0"
+		}
+	}
+}
+
+```
 
 ### Usuarios y cuentas
 
