@@ -6,6 +6,9 @@
 
 - Certificados JORGE x
 - Comunicación JORGE x
+- Seguridad
+	- Bcrypt
+	-  AES
 - Usuarios y cuentas MOLPE	
 - Optativo
 	- Doble autentificación con Correo JORGE x
@@ -139,7 +142,7 @@ Lo importante seria la cabecera tipo que sería la que redigiría las peticiones
 **Cliente:**
 El cliente tendría la misma petición y la estructura respesta donde recibe si la petición ha sido realizada correctamente o no:
 
-````GO
+```GO
 type peticion struct {
 	Tipo    string   `json:"tipo"`
 	Cookie  string   `json:"cookie"`
@@ -154,7 +157,89 @@ type respuesta struct {
 	Cuerpo     []byte `json:"respuesta"`
 }
 
-````
+```
+### Seguridad
+### Bcrypt
+Hemos utilizado hash en concreto bcrypt para encriptar el nombre de usuario que utilizamos como nombre del archivo, para que no se conozca qué es de quien.
+
+```GO
+	hashedPassword, _ := bcrypt.GenerateFromPassword(password, brypt.DefaultCost)
+
+```
+Para hacerlo único y que el hash no coincida con el de otro usuario utilizamos como usuario la suma de "usuario"+"contraseña":
+
+```GO
+	password := []byte(nombre + contraseñaUsuario)
+
+```
+
+A la hora de comprobar el usuario, lo comprobamos recorriendo todos los archivos y realizando un compare hash de "usuario"+"contraseña":
+
+```GO
+	//el nombre de los archivos está almacenado en el ficheros usuarios.json
+	var listaUSR = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
+
+	for _, obj := range listaUSR {
+		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(usuario.Name))
+		if err == nil {
+			//Primer paso autentificación
+			//Compronación correo
+		}
+	}
+
+```
+
+### AES 
+Para todos los datos que necesitamos poder recuperar sin proporcionarlos nosotros como sería el caso del hash hemos utilizado AES.
+
+Para cifrar y descifrar:
+
+```GO
+func encriptar(datosPlanos []byte, key []byte) string {
+	plaintext := datosPlanos
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err)
+	}
+
+	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
+	iv := ciphertext[:aes.BlockSize]
+	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+		panic(err)
+	}
+
+	stream := cipher.NewCFBEncrypter(block, iv)
+	stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
+
+	return base64.URLEncoding.EncodeToString(ciphertext)
+}
+
+func desencriptar(datosEncriptados string, key []byte) string {
+
+	ciphertext, _ := base64.URLEncoding.DecodeString(datosEncriptados)
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err)
+	}
+
+	if len(ciphertext) < aes.BlockSize {
+		panic("ciphertext too short")
+	}
+	iv := ciphertext[:aes.BlockSize]
+	ciphertext = ciphertext[aes.BlockSize:]
+
+	stream := cipher.NewCFBDecrypter(block, iv)
+
+	stream.XORKeyStream(ciphertext, ciphertext)
+
+	return fmt.Sprintf("%s", ciphertext)
+}
+
+```
+Como observamos pasamos el texto a cifrar o descifrar y la clave para realizar el trabajo.
+
 ### Usuarios y cuentas
 
 Pasaremos a comentar el trabajo realizado para la gestion de usuarios en esta práctica, explicando esto en distintas secciones.

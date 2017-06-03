@@ -508,7 +508,7 @@ func jSONtoCuentas(datos []byte) []cuenta {
 }
 
 /////////////////////////////////////////////
-///////// TRABAJO CON Encriptacion	////////
+///////// TRABAJO CON CIFRADO	////////
 ///////////////////////////////////////////
 func encriptar(datosPlanos []byte, key []byte) string {
 	plaintext := datosPlanos
