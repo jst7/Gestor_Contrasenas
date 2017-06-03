@@ -947,6 +947,13 @@ func escribirArchivoClientes(file string, data string) bool {
 }
 
 ```
+### Información adicional Usuarios
+
+Como parte adicional, se ha realizado guardar información adicional de los usuarios.
+
+Como comentamos anteriormente la lógica de nuestra aplicación guarda a los usuarios disponibles en una archivo usuarios.json, este archivo almacena el usuario y la contraseña de este y lo utiliza para comprobar si el login es correcto. Como parte opcional se ha añadido más información de este usuario en este caso hemos añadido el correo, este correo como se ha explicado en otros puntos se utiliza para comprobar el login del usuario.
+Toda esta información se guarda cifrada y el archivo se cifra también haciendo de esta información un doble cifrado.
+
 
 ### Puesta en marcha
 
