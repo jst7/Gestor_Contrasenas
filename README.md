@@ -551,6 +551,92 @@ func devolvercuentasUsuario(pet peticion) []byte {
 
 El cliente será el encargado de descifrar los datos que recibe del servidor y mostrárselo al cliente.
 
+###### Eliminar cuenta
+
+En esta opcion el usuario podrá borrar la cuenta que decida y seleccione, en primer lugar esta opcion le muestra todas las cuentas disponibles(sin contraseña) y tendrá que introducir el nombre de la cuenta y el servicio al que pertenece esta cuenta, ya que podemos tener cuentas con el mismo nombre pero distinto servicio.
+
+En primer lugar en el cliente gestionamos el borrado mediante el siguiente método:
+
+```GO
+func borrarCuentaServicio() {
+
+	var cuentaname string
+	var servicio string
+
+	var nuevaListaCuentas []cuenta
+	var listCuentasdisponbls []cuenta
+
+	UsuarioConectado.Cuentas = nil
+	pet := peticion{"delcuentas", sesionUsuario.Valor, UsuarioConectado, nil, ""}
+
+	var peti = peticionToJSON(pet)
+	var comunicacionDel = comunicacion(peti)
+	var respuesta = jSONtoRespuesta([]byte(comunicacionDel))
+	//println(string(respuesta.Cuerpo))
+	cuentasRespuesta := jSONtoCuentas(respuesta.Cuerpo)
+	for _, obj := range cuentasRespuesta {
+		listCuentasdisponbls = append(listCuentasdisponbls, cuenta{desencriptar(obj.Usuario, keyuser), obj.Contraseña, desencriptar(obj.Servicio, keyuser)})
+	}
+	menuBorrado(listCuentasdisponbls)
+	fmt.Print("Introduce cuenta a borrar: ")
+	fmt.Scanf("%s\n", &cuentaname)
+	fmt.Print("Introduce servicio a borrar: ")
+	fmt.Scanf("%s\n", &servicio)
+
+	for _, obj := range listCuentasdisponbls {
+		if obj.Usuario != cuentaname || obj.Servicio != servicio {
+			obj = cuenta{encriptar([]byte(obj.Usuario), keyuser), obj.Contraseña, encriptar([]byte(obj.Servicio), keyuser)}
+			nuevaListaCuentas = append(nuevaListaCuentas, obj)
+		}
+	}
+	UsuarioConectado.Cuentas = nuevaListaCuentas
+	peticionActu := peticion{"delcuentas", sesionUsuario.Valor, UsuarioConectado, nuevaListaCuentas, ""}
+
+	var petiActu = peticionToJSON(peticionActu)
+	var comunicacionActu = comunicacion(petiActu)
+	var respuestaActu = jSONtoRespuesta([]byte(comunicacionActu))
+
+	if string(respuestaActu.Estado) == "Correcto" {
+		println("Borrado realizado correctamente")
+	} else if string(respuestaActu.Estado) == "Incorrecto" {
+		println("Borrado no realizado")
+	}
+
+}
+```
+Como podemos ver este método envia una peticion al servidor, el cual detecta que al ser una petición enviada sin cuentas en el cuerpo(es decir sin una modificación) se le está pidiendo que devuelva las cuentas que hay disponibles para borrar.
+Esto es debido a que la lógica seguida para el borrado es reutilizando la modificación por eso se envia previamente una peticion sin cuentas en el cuerpo así detectando el servidor que no es la modificación si no la petición del cliente de las cuentas que se pueden borrar.
+
+Podemos ver la gestión en el servidor:
+
+```GO
+	case "delcuentas":
+		if comprobarCookieValida(pet) {
+			if pet.Usuario.Cuentas == nil {
+				var stin = devolvercuentasUsuario(pet)
+				res := respuesta{"Correcto", getCookieUsuarios(obtenerUsuarioCookie(pet)).Oreo, "string", stin}
+				resp = respuestaToJSON(res)
+
+			} else {
+
+				var resul = actualizarcuentas(pet)
+				if resul {
+					res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", []byte("Cuenta Borrada")}
+					resp = respuestaToJSON(res)
+				} else {
+					res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", []byte("Cuenta no borrada")}
+					resp = respuestaToJSON(res)
+				}
+			}
+		} else {
+			fmt.Print("sesion caudcada")
+
+		}
+```
+Como podemos ver lo que realiza es primero devolver las cuentas, si el cuerpo de la petición esta vacio, si no, realiza una actualización.
+Hablaremos en el siguiente punto de la actualización.
+
+
 ### Parte optativa
 
 #### Doble autentificación con Correo
