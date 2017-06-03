@@ -636,6 +636,154 @@ Podemos ver la gestión en el servidor:
 Como podemos ver lo que realiza es primero devolver las cuentas, si el cuerpo de la petición esta vacio, si no, realiza una actualización.
 Hablaremos en el siguiente punto de la actualización.
 
+###### Actualizar cuentas
+
+En esta parte al usuario se le ofrece la posibilidad de actualizar sus cuentas, su información, contraseña etc.
+Este es una funcionalidad importante ya que también se le ofrece al usuario la posibilidad de añadir cuentas nuevas introduciendo en los primeros campos de referencia hacia la cuenta a modificar el nombre y datos de la cuenta que desea crear.
+
+En el cliente se le gestiona de la siguiente forma:
+
+```GO
+func modificarCuentas() {
+
+	var cuentaname string
+	var servicio string
+	var password string
+	var cuentaNNombre string
+	var servicioNServi string
+	var nuevoPassword string
+
+	var nuevaListaCuentas []cuenta
+	var listCuentasdisponbls []cuenta
+
+	UsuarioConectado.Cuentas = nil
+	pet := peticion{"actualizarCuenta", sesionUsuario.Valor, UsuarioConectado, nil, ""}
+
+	var peti = peticionToJSON(pet)
+	var comunicacionDel = comunicacion(peti)
+	var respuesta = jSONtoRespuesta([]byte(comunicacionDel))
+	//println(string(respuesta.Cuerpo))
+	cuentasRespuesta := jSONtoCuentas(respuesta.Cuerpo)
+	for _, obj := range cuentasRespuesta {
+		listCuentasdisponbls = append(listCuentasdisponbls, cuenta{desencriptar(obj.Usuario, keyuser), desencriptar(obj.Contraseña, keyuser), desencriptar(obj.Servicio, keyuser)})
+	}
+	listaCuentas(listCuentasdisponbls)
+	fmt.Print("Introduce cuenta a modificar: ")
+	fmt.Scanf("%s\n", &cuentaname)
+	fmt.Print("Introduce servicio a modificar: ")
+	fmt.Scanf("%s\n", &servicio)
+	fmt.Print("Introduce contraseña del servicio a modificar: ")
+	fmt.Scanf("%s\n", &password)
+
+	fmt.Print("¿Quieres cambiar el nombre?")
+	var cambiarNombre string
+	fmt.Scanf("%s\n", &cambiarNombre)
+
+	if cambiarNombre == "si" || cambiarNombre == "SI" {
+		fmt.Print("Introduce nuevo nombre para la cuenta " + cuentaname + ": ")
+		fmt.Scanf("%s\n", &cuentaNNombre)
+	} else {
+		cuentaNNombre = cuentaname
+	}
+
+	fmt.Print("¿Quieres cambiar el servicio?")
+	var cambiarServicio string
+	fmt.Scanf("%s\n", &cambiarServicio)
+
+	if cambiarServicio == "si" || cambiarServicio == "SI" {
+		fmt.Print("Introduce nuevo servicio para la cuenta " + cuentaname + " del servicio " + servicio + ": ")
+		fmt.Scanf("%s\n", &servicioNServi)
+	} else {
+		servicioNServi = servicio
+	}
+
+	fmt.Print("¿Quieres cambiar la contraseña?")
+	var cambiarPass string
+	fmt.Scanf("%s\n", &cambiarPass)
+
+	if cambiarPass == "si" || cambiarPass == "SI" {
+		fmt.Print("Introduce nueva contraseña para la cuenta " + cuentaname + ": ")
+		fmt.Scanf("%s\n", &nuevoPassword)
+	} else {
+		nuevoPassword = password
+	}
+
+	var cuentaModificada = cuenta{encriptar([]byte(cuentaNNombre), keyuser), encriptar([]byte(nuevoPassword), keyuser), encriptar([]byte(servicioNServi), keyuser)}
+	for _, obj := range listCuentasdisponbls {
+		if obj.Usuario != cuentaname || obj.Servicio != servicio {
+			obj = cuenta{encriptar([]byte(obj.Usuario), keyuser), encriptar([]byte(obj.Contraseña), keyuser), encriptar([]byte(obj.Servicio), keyuser)}
+			nuevaListaCuentas = append(nuevaListaCuentas, obj)
+		}
+	}
+
+	nuevaListaCuentas = append(nuevaListaCuentas, cuentaModificada)
+	UsuarioConectado.Cuentas = nuevaListaCuentas
+	peticionActu := peticion{"actualizarCuenta", sesionUsuario.Valor, UsuarioConectado, nuevaListaCuentas, ""}
+
+	var petiActu = peticionToJSON(peticionActu)
+	var comunicacionActu = comunicacion(petiActu)
+	var respuestaActu = jSONtoRespuesta([]byte(comunicacionActu))
+
+	if string(respuestaActu.Estado) == "Correcto" {
+		println("Actualizado realizado correctamente")
+	} else if string(respuestaActu.Estado) == "Incorrecto" {
+		println("Actualizado no realizado")
+	}
+}
+```
+El método al igual que borrar le ofrece al usuario todas las cuentas que tiene disponible para modificar, en caso de que no quiera modificar una cuenta si no añadir una nueva tendrá que añadir los datos y se creará una nueva cuenta con estos datos. Esta petición se le enviará al servidor el cual actualizará el fichero de datos del cliente con los nuevos datos recibidos.
+
+Por parte del servidor se hará un comportamiento similar al borrado.
+La gestión principal en la comunciación es la siguiente:
+
+```GO
+case "actualizarCuenta":
+		if comprobarCookieValida(pet) {
+			if pet.Usuario.Cuentas == nil {
+				var stin = devolvercuentasUsuario(pet)
+				res := respuesta{"Correcto", getCookieUsuarios(obtenerUsuarioCookie(pet)).Oreo, "string", stin}
+				resp = respuestaToJSON(res)
+			} else {
+				var resul = actualizarcuentas(pet)
+				if resul {
+					res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", []byte("Cuenta Actualizada")}
+					resp = respuestaToJSON(res)
+				} else {
+					res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", []byte("Cuenta no Actualizada")}
+					resp = respuestaToJSON(res)
+				}
+			}
+		} else {
+			fmt.Print("sesion caudcada")
+
+		}
+
+```
+
+y el método actualizar cuentas actualizará el fichero de datos del cliente de la siguiente manera:
+
+```GO
+func actualizarcuentas(pet peticion) bool {
+	var resultado = false
+	var listaUSR = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
+
+	for _, obj := range listaUSR {
+		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(pet.Usuario.Name))
+		if err == nil {
+
+			deleteFile(obj.Name + ".json")
+			createFile(obj.Name + ".json")
+			escribirArchivoClientes(obj.Name+".json", string(cuentasToJSON(pet.Usuario.Cuentas)))
+			resultado = true
+
+		}
+	}
+
+	return resultado
+}
+
+```
+Recibe las cuentas, las cifra y crea un nuevo archivo borrando el anterior no sin antes de escribir el fichero cifrar todos sus datos.
 
 ### Parte optativa
 
