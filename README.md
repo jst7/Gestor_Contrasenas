@@ -927,6 +927,7 @@ Guardamos un log de las operaciones que ha realizado el servidor por si tenemos 
 
 ```GO
 func escribirLog(data string) bool {
+	leerArchivo("log.txt")
 	var log = false
 	t := time.Now()
 	var stringHora = string(t.Format("20060102150405"))
@@ -961,6 +962,41 @@ func escribirArchivoClientes(file string, data string) bool {
 }
 
 ```
+Para leerlo usamos el un metodo espefico:
+
+```GO
+
+func leerArchivoLog(readfile string) string {
+
+	var leer = true
+	dat, err := ioutil.ReadFile(readfile)
+	if err != nil {
+		if readfile == "log.txt" {
+			createFile("log.txt")
+			leer = false
+		} else {
+			panic(err)
+		}
+	}
+	var log = string(dat)
+	var lineas = strings.Split(log, "\n")
+	var res string
+
+	for i := range lineas {
+		if leer && lineas[i] != "" {
+			res = res + "\n" + desencriptar(lineas[i], keyEncripArch)
+		}
+	}
+
+	return res
+}
+
+```
+
+Nos proporciona la información que hayamos ido recogiendo. 
+Algo similar a esto:
+
+
 ### Información adicional Usuarios
 
 Como parte adicional, se ha realizado guardar información adicional de los usuarios.
