@@ -97,19 +97,31 @@ var keyEncripArch = []byte("claveServidor123")
 
 func main() {
 	log.SetFlags(log.Lshortfile)
-	fmt.Printf("------------------------------------\nARRANCADO EL SERVIDOR\n------------------------------------\n")
 
-	cer, _ := tls.LoadX509KeyPair("server.crt", "server.key")
+	println("1. Comprobar log")
+	println("2. Arrancar servidor")
 
-	config := &tls.Config{Certificates: []tls.Certificate{cer}}
-	ln, _ := tls.Listen("tcp", ":443", config)
+	var op int
+	fmt.Scanf("%d\n", &op)
 
-	defer ln.Close()
+	if op == 1 {
+		fmt.Println(string(leerArchivoLog("log.txt")))
+	} else if op == 2 {
+		fmt.Printf("------------------------------------\nARRANCADO EL SERVIDOR\n------------------------------------\n")
 
-	for {
-		conn, _ := ln.Accept()
+		cer, _ := tls.LoadX509KeyPair("server.crt", "server.key")
 
-		go handleConnection(conn)
+		config := &tls.Config{Certificates: []tls.Certificate{cer}}
+		ln, _ := tls.Listen("tcp", ":443", config)
+
+		defer ln.Close()
+
+		for {
+			conn, _ := ln.Accept()
+
+			go handleConnection(conn)
+		}
+
 	}
 }
 
@@ -117,6 +129,7 @@ func main() {
 ///////// TRABAJO CON CONEXION	////////////
 ///////////////////////////////////////////
 func handleConnection(conn net.Conn) {
+	escribirLog("Petición")
 	vaciarCookie()
 	defer conn.Close()
 	r := bufio.NewReader(conn)
@@ -128,6 +141,7 @@ func handleConnection(conn net.Conn) {
 
 	switch pet.Tipo {
 	case "crearUsuario":
+		escribirLog("crear Usuario")
 		if creacionUsuarioPorPeticion(pet) {
 			// "----------------\nUsuario Creado\n----------------"
 
@@ -141,8 +155,9 @@ func handleConnection(conn net.Conn) {
 		}
 
 	case "sesion":
-
+		escribirLog("inicio Sesion")
 		if recuperarSesion(pet) {
+			escribirLog("Sesión iniciada")
 			//"----------------\nSesión Iniciada\n----------------"
 			//fmt.Println(listaCookies)
 			res := respuesta{"Correcto", getCookieUsuarios(pet.Usuario.Name).Oreo, "string", []byte("log completo")} //falta meter la cookie
@@ -156,7 +171,7 @@ func handleConnection(conn net.Conn) {
 		}
 
 	case "autcorreo":
-
+		escribirLog("auto correo")
 		if comprobarCookieValida(pet) {
 			if recuperarSesionCorreo(recuperarCorreo(pet.Usuario), pet.Clave) {
 				res := respuesta{"Correcto", getCookieUsuarios(pet.Usuario.Name).Oreo, "string", []byte("log completo con correo")} //falta meter la cookie
@@ -169,7 +184,7 @@ func handleConnection(conn net.Conn) {
 			fmt.Print("sesion caudcada")
 		}
 	case "getcuentas":
-
+		escribirLog("Obtener cuentas")
 		if comprobarCookieValida(pet) {
 
 			res := respuesta{"Correcto", getCookieUsuarios(obtenerUsuarioCookie(pet)).Oreo, "string", devolvercuentasUsuario(pet)}
@@ -179,6 +194,7 @@ func handleConnection(conn net.Conn) {
 		}
 
 	case "delcuentas":
+		escribirLog("Borrar cuentas")
 		if comprobarCookieValida(pet) {
 			if pet.Usuario.Cuentas == nil {
 				var stin = devolvercuentasUsuario(pet)
@@ -201,6 +217,7 @@ func handleConnection(conn net.Conn) {
 
 		}
 	case "actualizarCuenta":
+		escribirLog("Actualizar Cuenta")
 		if comprobarCookieValida(pet) {
 			if pet.Usuario.Cuentas == nil {
 				var stin = devolvercuentasUsuario(pet)
@@ -221,7 +238,7 @@ func handleConnection(conn net.Conn) {
 
 		}
 	default:
-
+		escribirLog("Peticion incorrecta")
 		res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", []byte("Ha ocurrido un error")}
 		resp = respuestaToJSON(res)
 	}
@@ -470,6 +487,9 @@ func leerArchivo(readfile string) []byte {
 		if readfile == "usuarios.json" {
 			createFile("usuarios.json")
 			leer = false
+		} else if readfile == "log.txt" {
+			createFile("log.txt")
+			leer = false
 		} else {
 			panic(err)
 		}
@@ -480,6 +500,31 @@ func leerArchivo(readfile string) []byte {
 	}
 
 	return dat
+}
+
+func leerArchivoLog(readfile string) string {
+
+	var leer = true
+	dat, err := ioutil.ReadFile(readfile)
+	if err != nil {
+		if readfile == "log.txt" {
+			createFile("log.txt")
+			leer = false
+		} else {
+			panic(err)
+		}
+	}
+	var log = string(dat)
+	var lineas = strings.Split(log, "\n")
+	var res string
+
+	for i := range lineas {
+		if leer && lineas[i] != "" {
+			res = res + "\n" + desencriptar(lineas[i], keyEncripArch)
+		}
+	}
+
+	return res
 }
 
 func createFile(filename string) {
@@ -761,6 +806,7 @@ func recuperarSesionCorreo(correo string, clave string) bool {
 ///////////	 TRABAJO CON LOG	////////////
 ///////////////////////////////////////////
 func escribirLog(data string) bool {
+	leerArchivo("log.txt")
 	var log = false
 	t := time.Now()
 	var stringHora = string(t.Format("20060102150405"))

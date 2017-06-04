@@ -274,7 +274,6 @@ func pedirclave() bool {
 
 		//SESIÓN
 		sesionUsuario.Valor = respuesta.Cookie
-		fmt.Println(sesionUsuario.Valor)
 
 		if claveCorreo(nombre + contraseña) {
 			fmt.Println("--------------------------------------------------")
@@ -282,6 +281,7 @@ func pedirclave() bool {
 			//println(UsuarioConectado.Name)
 			return true
 		} else {
+			fmt.Println("Error clave de correo")
 			return false
 		}
 
