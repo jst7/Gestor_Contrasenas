@@ -40,7 +40,7 @@ type peticion struct {
 }
 type respuesta struct {
 	Estado     string `json:"estado"`
-	Cookie     string `json:"cookie"`     //o token segun lo que implemente fran
+	Cookie     string `json:"cookie"`
 	TipoCuerpo string `json:"tipocuerpo"` //tipo de dato del cuerpo
 	Cuerpo     []byte `json:"respuesta"`
 }
@@ -53,20 +53,12 @@ var sesionUsuario cookieIniciado
 var UsuarioConectado usuario
 var keyuser []byte
 
-/**
-Todos las "_" se pueden sustituir por "err" y añadir el codigo:
-	if err != nil {
-		log.Println(err)
-		return
-	}
-**/
 /////////////////////////////////////
 /////////	Metodos			////////
 ///////////////////////////////////
 func main() {
 	var op int
 	fmt.Printf("------------------------------------\nBienvenido a sus Gestor de Contraseñas\n------------------------------------\n")
-	//key := []byte("example key 1234")
 	op = 0
 	var dentro int
 	for i := 1; op != 3; i++ {
@@ -129,7 +121,6 @@ func comunicacion(enviar []byte) string {
 	conn.CloseWrite()
 	buf := make([]byte, 50000)
 	n, _ = conn.Read(buf)
-	//println(string(buf[:n]))
 	return string(buf[:n])
 }
 func menuComunicacion() int {
@@ -260,8 +251,6 @@ func pedirclave() bool {
 	println("Introduce tu contraseña:")
 	fmt.Scanf("%s\n", &contraseña)
 
-	//key del usuario
-	//var key []byte
 	keyuser = obtenerkeyUsuario(contraseña)
 
 	user := usuario{nombre + contraseña, "", nil}
@@ -303,7 +292,6 @@ func listarCuentas() {
 	var peti = peticionToJSON(pet)
 	var comunicacionDel = comunicacion(peti)
 	var respuesta = jSONtoRespuesta([]byte(comunicacionDel))
-	//println(string(respuesta.Cuerpo))
 	cuentasRespuesta := jSONtoCuentas(respuesta.Cuerpo)
 	for _, obj := range cuentasRespuesta {
 		listCuentasdisponbls = append(listCuentasdisponbls, cuenta{desencriptar(obj.Usuario, keyuser), desencriptar(obj.Contraseña, keyuser), desencriptar(obj.Servicio, keyuser)})
@@ -338,7 +326,6 @@ func modificarCuentas() {
 	var peti = peticionToJSON(pet)
 	var comunicacionDel = comunicacion(peti)
 	var respuesta = jSONtoRespuesta([]byte(comunicacionDel))
-	//println(string(respuesta.Cuerpo))
 	cuentasRespuesta := jSONtoCuentas(respuesta.Cuerpo)
 	for _, obj := range cuentasRespuesta {
 		listCuentasdisponbls = append(listCuentasdisponbls, cuenta{desencriptar(obj.Usuario, keyuser), desencriptar(obj.Contraseña, keyuser), desencriptar(obj.Servicio, keyuser)})
@@ -420,7 +407,6 @@ func borrarCuentaServicio() {
 	var peti = peticionToJSON(pet)
 	var comunicacionDel = comunicacion(peti)
 	var respuesta = jSONtoRespuesta([]byte(comunicacionDel))
-	//println(string(respuesta.Cuerpo))
 	cuentasRespuesta := jSONtoCuentas(respuesta.Cuerpo)
 	for _, obj := range cuentasRespuesta {
 		listCuentasdisponbls = append(listCuentasdisponbls, cuenta{desencriptar(obj.Usuario, keyuser), obj.Contraseña, desencriptar(obj.Servicio, keyuser)})
@@ -476,12 +462,10 @@ func jSONtoRespuesta(resp []byte) respuesta { //desjoson
 func usuarioToJSON(user usuario) []byte { //Crear el json
 
 	resultado, _ := json.Marshal(user)
-	//fmt.Printf("%s\n", resultado)
 	return resultado
 }
 func peticionToJSON(pet peticion) []byte {
 	resultado, _ := json.Marshal(pet)
-	//fmt.Printf("%s\n", resultado)
 	return resultado
 }
 

@@ -62,8 +62,8 @@ type peticion struct {
 
 type respuesta struct {
 	Estado     string `json:"estado"`
-	Cookie     string `json:"cookie"`     //o token segun lo que implemente fran
-	TipoCuerpo string `json:"tipocuerpo"` //tipo de dato del cuerpo
+	Cookie     string `json:"cookie"`
+	TipoCuerpo string `json:"tipocuerpo"`
 	Cuerpo     []byte `json:"respuesta"`
 }
 
@@ -144,7 +144,6 @@ func handleConnection(conn net.Conn) {
 		escribirLog("crear Usuario")
 		if creacionUsuarioPorPeticion(pet) {
 			// "----------------\nUsuario Creado\n----------------"
-
 			res := respuesta{"Correcto", getCookieUsuarios("").Oreo, "string", []byte("Usuario creado correctamente")} //falta meter la cookie
 			resp = respuestaToJSON(res)
 
@@ -159,7 +158,6 @@ func handleConnection(conn net.Conn) {
 		if recuperarSesion(pet) {
 			escribirLog("Sesión iniciada")
 			//"----------------\nSesión Iniciada\n----------------"
-			//fmt.Println(listaCookies)
 			res := respuesta{"Correcto", getCookieUsuarios(pet.Usuario.Name).Oreo, "string", []byte("log completo")} //falta meter la cookie
 			email(recuperarCorreoUsuario(pet.Usuario.Name), recuperarClave(recuperarCorreoUsuario(pet.Usuario.Name)))
 			resp = respuestaToJSON(res)
@@ -242,8 +240,6 @@ func handleConnection(conn net.Conn) {
 		res := respuesta{"Incorrecto", getCookieUsuarios("").Oreo, "string", []byte("Ha ocurrido un error")}
 		resp = respuestaToJSON(res)
 	}
-
-	//println(linea)
 	conn.Write(resp)
 
 }
@@ -255,10 +251,8 @@ func handleConnection(conn net.Conn) {
 func setCookie(n int) string {
 	token, err := GenerateRandomString(n)
 	if err != nil {
-		// Serve an appropriately vague error to the
-		// user, but log the details internally.
+
 	}
-	//println(time.Now().String())
 	return token
 }
 
@@ -400,7 +394,6 @@ func iniciarSesion(usuario usuarioBD) bool {
 
 	var entra = false
 	for _, obj := range listaUSR {
-		//print("Comprobar sesion1: " + obj.Name + " " + usuario.Name)
 		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(usuario.Name))
 		if err == nil {
 			//hacemos la cookie
@@ -412,7 +405,6 @@ func iniciarSesion(usuario usuarioBD) bool {
 			listaCookies = append(listaCookies, n)
 
 			entra = true
-			//println("hola entro")
 		}
 	}
 	return entra
@@ -424,10 +416,8 @@ func creacionUsuarioPorPeticion(pet peticion) bool {
 	var usuarioNuevo usuarioBD
 	usuarioNuevo.Name = pet.Usuario.Name
 	usuarioNuevo.Correo = pet.Usuario.Correo
-	//println("AQUI " + pet.Usuario.Name)
 
 	if !comprobarExistenciaUSR(usuarios, usuarioNuevo) {
-		//println("ENTRA")
 		var nombre string
 
 		nombre = pet.Usuario.Name
@@ -462,7 +452,6 @@ func comprobarExistenciaUSR(listaUSR []usuarioBD, usuario usuarioBD) bool {
 	for _, obj := range listaUSR {
 		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(usuario.Name))
 		if err == nil {
-			//fmt.Println("EXISTE EL USUARIO SOLICITADO")
 			existe = true
 		}
 	}
@@ -528,14 +517,11 @@ func leerArchivoLog(readfile string) string {
 }
 
 func createFile(filename string) {
-	// detect if file exists
 	var _, err = os.Stat(filename)
 
-	// create file if not exists
 	if os.IsNotExist(err) {
 		var file, err = os.Create(filename)
 		if err != nil {
-			//fmt.Println(err.Error())
 			os.Exit(0)
 		}
 		defer file.Close()
@@ -609,13 +595,11 @@ func jSONtoCuentas(datos []byte) []cuenta {
 
 func peticionToJSON(pet peticion) []byte {
 	resultado, _ := json.Marshal(pet)
-	//fmt.Printf("%s\n", resultado)
 	return resultado
 }
 
 func respuestaToJSON(res respuesta) []byte {
 	resultado, _ := json.Marshal(res)
-	//fmt.Printf("%s\n", resultado)
 	return resultado
 }
 
@@ -779,7 +763,6 @@ func recuperarCorreo(user usuario) string {
 	var listaUSR = jSONtoUsuariosBD(leerArchivo("usuarios.json"))
 
 	for _, obj := range listaUSR {
-		//print("Comprobar sesion2: " + obj.Name + " " + user.Name)
 		err := bcrypt.CompareHashAndPassword([]byte(obj.Name), []byte(user.Name))
 		if err == nil {
 			return obj.Correo
@@ -790,9 +773,6 @@ func recuperarCorreo(user usuario) string {
 
 func recuperarSesionCorreo(correo string, clave string) bool {
 
-	//fmt.Println("Correo: " + correo)
-	//fmt.Println("Clave: " + clave)
-	//fmt.Println(listaCorreoClave)
 	for _, obj := range listaCorreoClave {
 		if obj.Correo == correo && obj.clave == clave {
 			return true

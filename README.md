@@ -11,7 +11,9 @@ Francisco José Maciá Esclapez
 
 ____ 
 ### Indice
-#### Otras alternativas
+#### Introducción
+
+- Otras alternativas
 
 #### Nuestra Práctica
 
@@ -32,10 +34,17 @@ ____
 - Ejemplo de ejecución 
 
 ___
-	
-## Otras alternativas
+
+## Introducción
+En esta práctica se nos ha pedido realizar un gestor de contraseñas con distintos niveles de seguridad. Por un lado, el cifrado y encriptado y por otro hemos realizados un seguimiento con log y doble autentificación con correo.
+
+En esta memoria vamos a desarrollar como hemos realizado nuestra práctica y un breve ejemplo de funcionamiento.
+### Otras alternativas
+En primer lugar antes de pasar a explicar nuestra página estas son otras alternativas del mercado:
 **Dashlane Password Manager**
+
 ![Dashlane](./imagenes/Dashlane.png)
+
 Dashlane es una de las aplicaciones gratuitas para la gestión de contraseñas mejor posicionadas gracias a sus múltiples características y no está de más decir que en año 2015 fue elegida como una de las mejores aplicaciones por el Play Store y por el App Store.
 
 - Ofrece encriptación AES-256
@@ -44,7 +53,9 @@ Dashlane es una de las aplicaciones gratuitas para la gestión de contraseñas m
 - Posee respaldo constante de las contraseñas
 
 **Keeper Password Manager**
+
 ![Keeper](./imagenes/Keeper.png)
+
 Keeper es otra de las opciones gratuitas para ambientes Windows que nos ofrece una integridad y seguridad a la hora del manejo de nuestras contraseñas. Gracias a Keeper contaremos con una aplicación que ha sido desarrollada con los más altos estándares de seguridad ya que usa el cifrado AES-256 como base de encriptación.
 
 - Cuenta con un generador de contraseñas seguro
@@ -53,7 +64,9 @@ Keeper es otra de las opciones gratuitas para ambientes Windows que nos ofrece u
 - Cuenta con encriptación AES-256 y PBKDF2
 
 **LastPass Password Manager**
+
 ![LastPass](./imagenes/LastPass.png)
+
 Es una aplicación multiplaforma con la que todas nuestras contraseñas estarán seguras gracias a sus características avanzadas y niveles de encriptación AES-256.
 
 - Usa nivel de encriptación AES de 256 bits incluyendo algoritmos hash con sal y PBKDF2 SHA-256.
@@ -146,10 +159,10 @@ type cuenta struct {
 }
 ```
 
-Lo importante seria la cabecera tipo que sería la que redigiría las peticiones del cliente. Por otro lado, tenemos la cookie para la sesion, usuario que es un tipo de usuario y cuentas.
+Lo importante seria la cabecera **"tipo"** que sería la que redigiría las peticiones del cliente. Por otro lado, tenemos la cookie para la sesión, usuario que es un tipo de usuario y cuentas.
 
 **Cliente:**
-El cliente tendría la misma petición y la estructura respesta donde recibe si la petición ha sido realizada correctamente o no:
+El cliente tendría la misma petición y la estructura respeta donde recibe si la petición ha sido realizada correctamente o no:
 
 ```GO
 type peticion struct {
@@ -267,14 +280,15 @@ func obtenerkeyUsuario(contraseña string) []byte {
 }
 
 ```
+*Para leer y escribir datos del servidor usamos una clave genérica que usamos en todos los archivos, como son el log.txt, y los datos de usuarios.json, y los archivos de los usuarios.
 
 ### Usuarios y cuentas
 
-Pasaremos a comentar el trabajo realizado para la gestion de usuarios en esta práctica, explicando esto en distintas secciones.
+Pasaremos a comentar el trabajo realizado para la gestión de usuarios en esta práctica, explicando esto en distintas secciones.
 
 #### Usuarios
 
-Los usuarios son una parte fundamental de la aplicación estos son los clientes de nuestra aplicacion, personas que quieren almacenar información sobre sus cuentas(login,contraseña y servicio).
+Los usuarios son una parte fundamental de la aplicación estos son los clientes de nuestra aplicación, personas que quieren almacenar información sobre sus cuentas(login,contraseña y servicio).
 
 ##### Estructura
 Para esto hemos definido una estructura tanto en cliente como en servidor:
@@ -296,7 +310,7 @@ type usuario struct {
 }
 ```
 
-Como podemos ver comparten estructura tanto en cliente como servidor, esto es debido a que a la hora de trabajar en ambos casos es necesario que la estructura sea común, como por ejemplo para el trabajo en la conversion JSON.
+Como podemos ver comparten estructura tanto en cliente como servidor, esto es debido a que a la hora de trabajar en ambos casos es necesario que la estructura sea común, como por ejemplo para el trabajo en la conversión JSON.
 
 ##### JSON usuarios
 
@@ -320,7 +334,7 @@ func jSONtoUsuario(user []byte) usuario { //desjoson
 Esta funcion realiza lo contrario, transforma el mensaje del JSON a una variable del tipo usuario.
 ####Cuentas
 
-Otra parte a tener en cuenta es la estructura de las cuentas, las cuentas es el núcleo principal de la información del usuario, aqui es donde podemos encontrar toda la información sobre las cuentas(contraseña,login,servicio).
+Otra parte a tener en cuenta es la estructura de las cuentas, las cuentas es el núcleo principal de la información del usuario, aquí es donde podemos encontrar toda la información sobre las cuentas(contraseña,login,servicio).
 
 ##### Estructura cuentas
 
@@ -333,7 +347,7 @@ type cuenta struct {
 ```
 ##### JSON cuentas
 
-Al igual que con los usuarios podemos ver que s eha trabajado el JSON tanto de transformación de la estructura a JSON como del JSON a la estructura.
+Al igual que con los usuarios podemos ver que se ha trabajado el JSON tanto de transformación de la estructura a JSON como del JSON a la estructura.
 
 ```GO
 func cuentasToJSON(cuent []cuenta) []byte { //Crear el json
@@ -353,7 +367,7 @@ func jSONtoCuentas(datos []byte) []cuenta {
 
 A continuación explicaremos la lógica que sigue la aplicación para el trabajo con cuentas de los usuarios.
 
-En primer lugar cabe hablar de que la aplicación tiene en el lado del servidor un archivo con la información de los usuarios que existen en la aplicacion, este archivo contine una lista en JSON de los usuarios existentes, esto es debido a que cada usuario tiene su propio archivo de información de cuentas por ello es necesario controlar la existencia de usuarios por este archivo.El archivo en cuestion es "usuarios.json" todos los datos, nombres de estos usuarios estan cifrados.
+En primer lugar, cabe hablar de que la aplicación tiene en el lado del servidor un archivo con la información de los usuarios que existen en la aplicación, este archivo contine una lista en JSON de los usuarios existentes, esto es debido a que cada usuario tiene su propio archivo de información de cuentas por ello es necesario controlar la existencia de usuarios por este archivo.El archivo en cuestion es "usuarios.json" todos los datos, nombres de estos usuarios estan cifrados.
 
 ##### Creacion usuarios
 	
@@ -434,11 +448,11 @@ func crearUsuario() {
 	}
 ```
 
-Como podemos ver en el codigo anterior se le pide al usuario que introduzca sus datos(nombre contraseña y correo) y se le pregunta si quiere añadir cuentas.Después se cifra esta información y se pasa a realizar la comunicacion con el servidor.
+Como podemos ver en el código anterior se le pide al usuario que introduzca sus datos(nombre contraseña y correo) y se le pregunta si quiere añadir cuentas. Después se cifra esta información y se pasa a realizar la comunicacion con el servidor.
 
 ##### Servidor
 
-El servidor recibe la peticion de creación y pasa a crear el usuario, introduciendo en el archivo usuarios.json a este nuevo usuario y creando el archivo propio del usuario con sus datos.
+El servidor recibe la petición de creación y pasa a crear el usuario, introduciendo en el archivo usuarios.json a este nuevo usuario y creando el archivo propio del usuario con sus datos.
 
 ###### Tratamiento peticion servidor
 ```GO
@@ -498,7 +512,7 @@ func creacionUsuarioPorPeticion(pet peticion) bool {
 }
 ```
 
-Aquí podemos ver como en la creacion del usuario lo que se realiza es comprobar si existe este usuario previamente, en caso de que exista se le comunica al cliente que no se ha podido crear su usuario ya que ya existe.
+Aquí podemos ver como en la creación del usuario lo que se realiza es comprobar si existe este usuario previamente, en caso de que exista se le comunica al cliente que no se ha podido crear su usuario ya que ya existe.
 En caso de que no exista pasariamos a introducir este usuario en el archivo usuarios.json, el siguiente paso a realizar seria crear el documento con el nombre del usuario(encriptado) e introducimos en el las cuentas del usuario encriptadas.
 
 ##### Gestión de cuentas
@@ -529,7 +543,7 @@ func listarCuentas() {
 }
 ```
 
-El servidor recibe esta petición por medio del menu de conexión.
+El servidor recibe esta petición por medio del menú de conexión.
 
 ```GO
 case "getcuentas":
@@ -543,7 +557,7 @@ case "getcuentas":
 		}
 ```
 
-y realiza la siguiente gestión para leer el archivo del cliente que al estar cifrado necesitará descifrarlo(sin descifrar sus datos) ya que tenemos un doble cifrado(de datos y del archivo completo).
+y realiza la siguiente gestión para leer el archivo del cliente que al estar cifrado necesitará descifrarlo (sin descifrar sus datos) ya que tenemos un doble cifrado (de datos y del archivo completo).
 
 ```GO
 func devolvercuentasUsuario(pet peticion) []byte {
@@ -565,7 +579,7 @@ El cliente será el encargado de descifrar los datos que recibe del servidor y m
 
 ###### Eliminar cuenta
 
-En esta opcion el usuario podrá borrar la cuenta que decida y seleccione, en primer lugar esta opcion le muestra todas las cuentas disponibles(sin contraseña) y tendrá que introducir el nombre de la cuenta y el servicio al que pertenece esta cuenta, ya que podemos tener cuentas con el mismo nombre pero distinto servicio.
+En esta opcion el usuario podrá borrar la cuenta que decida y seleccione, en primer lugar esta opción le muestra todas las cuentas disponibles (sin contraseña) y tendrá que introducir el nombre de la cuenta y el servicio al que pertenece esta cuenta, ya que podemos tener cuentas con el mismo nombre pero distinto servicio.
 
 En primer lugar en el cliente gestionamos el borrado mediante el siguiente método:
 
@@ -915,6 +929,7 @@ listaCorreoClave = append(listaCorreoClave, valor)
 
 ```
 
+![Doble auth](./imagenes/dobleCorreo.png)
 	
 #### Conocimiento 0
 El servidor no tiene capacidad de encriptar el usuario ni su nombre ni nada del cuerpo solo tiene la capacidad de comprobar el bcrypt. 
@@ -1040,3 +1055,36 @@ sudo ./servidor
 ![cliente Arrancado](./imagenes/cliente1.png)
 
 ### Prueba de ejecución real
+Por parte del servidor, se encuentra corriendo sin la iteracción del usuario:
+![Servidor segundo plano](./imagenes/servidorejec.png)
+Por la parte de cliente, una ejecución real:
+
+**Creamos cuenta y le añadimos cuentas de servicios**
+
+![Proceso darse alta](./imagenes/alta.png)
+
+**Iniciamos sesión**
+
+![iniciar sesión](./imagenes/iniciar.png)
+
+**Listar Servicios**
+
+![listar servicio](./imagenes/listarusers.png)
+
+**Eliminamos Servicio**
+
+![Elminar servicio](./imagenes/del.png)
+
+**Modificamos Servicio**
+
+![Elminar servicio](./imagenes/modificar.png)
+
+**Añadimos Servicio**
+
+![Elminar servicio](./imagenes/añadir.png)
+
+
+
+### Trabajo con Git
+
+### Conclusión
