@@ -117,7 +117,7 @@ func main() {
 ///////// TRABAJO CON CONEXION	////////////
 ///////////////////////////////////////////
 func handleConnection(conn net.Conn) {
-
+	vaciarCookie()
 	defer conn.Close()
 	r := bufio.NewReader(conn)
 
@@ -268,6 +268,21 @@ func getCookieUsuarios(usuario string) cookie {
 	return vacio
 }
 
+func vaciarCookie() {
+	t := time.Now()
+	var stringHora = string(t.Format("20060102150405"))
+	enteroHora, _ := strconv.Atoi(stringHora)
+
+	var cookieLimpiar []cookie
+
+	for i := range listaCookies {
+		if horaCookie(enteroHora, listaCookies[i].Expira) {
+			cookieLimpiar = append(cookieLimpiar, listaCookies[i])
+		}
+	}
+	listaCookies = cookieLimpiar
+}
+
 func comprobarCookieValida(pet peticion) bool {
 
 	t := time.Now()
@@ -280,8 +295,6 @@ func comprobarCookieValida(pet peticion) bool {
 				listaCookies[i].Expira = enteroHora
 				return true
 			}
-		} else {
-			return false
 		}
 	}
 	return false

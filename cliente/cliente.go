@@ -85,10 +85,12 @@ func main() {
 						borrarCuentaServicio()
 					} else if dentro == 3 { //Modificar una cuenta
 						modificarCuentas()
-					} else if dentro == 5 { //mostrar cookie
-						fmt.Println(sesionUsuario)
 					} else { //Cerrar sesión
-
+						sesionUsuario.Valor = ""
+						UsuarioConectado.Correo = ""
+						UsuarioConectado.Cuentas = nil
+						UsuarioConectado.Name = ""
+						keyuser = []byte("")
 					}
 
 				}
@@ -135,7 +137,6 @@ func menuComunicacion() int {
 	println("2. Eliminar cuenta")
 	println("3. Modificar cuenta")
 	println("4. Cerrar Sesión")
-	println("5. Mostrar cookie")
 
 	var op int
 	fmt.Scanf("%d\n", &op)
@@ -273,12 +274,12 @@ func pedirclave() bool {
 
 		//SESIÓN
 		sesionUsuario.Valor = respuesta.Cookie
+		fmt.Println(sesionUsuario.Valor)
 
 		if claveCorreo(nombre + contraseña) {
 			fmt.Println("--------------------------------------------------")
 			UsuarioConectado = user
-			println(UsuarioConectado.Name)
-			return true
+			//println(UsuarioConectado.Name)
 			return true
 		} else {
 			return false
