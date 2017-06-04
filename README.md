@@ -29,9 +29,10 @@ ____
 	- Log de la aplicación Servidor 
 	- Información adicional Usuarios 
 	- Cifrado archivos con contraseña maestra
-- Metodología de trabajo 
 - Puesta en marcha 
 - Ejemplo de ejecución 
+- Trabajo con Git
+- Conclusión
 
 ___
 
@@ -1088,3 +1089,6 @@ Por la parte de cliente, una ejecución real:
 ### Trabajo con Git
 
 ### Conclusión
+La seguridad es complicada y hemos podido ver el proceso de crear una aplicación potencialmente segura, con ella hemos observado los problemas que puede tener una aplicación en seguridad para aplicar doble autentificación, cifrado con conocimiento 0 o un hash. Para ello el uso de go ha sido de gran ayuda, ya que con pocas líneas podemos hacer un programa bastante potente.
+
+Por otro lado, nuestra alternativa no es 100% segura ya que tiene algun vacío que se debería cubrir en el futuro. Como el necesitar enviar parte del usuario aún enviando la cookie, o como realizar la caducidad de las cookies de una forma óptima. Ha sido una práctica interesante para introducirnos y poder desarrollar  nosotros la seguridad en una aplicación.
