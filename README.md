@@ -994,8 +994,8 @@ func leerArchivoLog(readfile string) string {
 ```
 
 Nos proporciona la información que hayamos ido recogiendo. 
-Algo similar a esto:
-
+Resultado similar a esto:
+![Servidor Arrancado](./imagenes/log.png)
 
 ### Información adicional Usuarios
 
@@ -1015,6 +1015,8 @@ Para poner en marcha tenemos que tener los directorios:
 	- /server.crt
 	- /server.key
 	- /servidor.go
+	- /usuarios.json
+	- log.txt
 
 Compilamos: 
 
