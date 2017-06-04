@@ -1,24 +1,35 @@
 # Gestor de Contraseñas
+Práctica de SEGURIDAD DISEÑO SOFTWARE
+
+Integrantes:
+
+Jorge Segovia Tormo
+
+Javier Molpeceres Gómez
+
+Francisco José Maciá Esclapez
+
+____ 
 ### Indice
-#### Otras alternativas FRAN X
+#### Otras alternativas
 
 #### Nuestra Práctica
 
-- Certificados JORGE x
-- Comunicación JORGE x
+- Certificados 
+- Comunicación 
 - Seguridad
 	- Bcrypt
 	-  AES
-- Usuarios y cuentas MOLPE	
+- Usuarios y cuentas
 - Optativo
-	- Doble autentificación con Correo JORGE x
-	- Conocimiento 0 JORGE 
-	- Log de la aplicación Servidor JORGE x
-	- Información adicional Usuarios MOLPE
-	- Cifrado archivos con contraseña maestra MOLPE
-- Metodología de trabajo FRAN
-- Puesta en marcha JORGE x
-- Ejemplo de ejecución FRAN
+	- Doble autentificación con Correo 
+	- Conocimiento 0 
+	- Log de la aplicación Servidor 
+	- Información adicional Usuarios 
+	- Cifrado archivos con contraseña maestra
+- Metodología de trabajo 
+- Puesta en marcha 
+- Ejemplo de ejecución 
 
 ___
 	
@@ -132,8 +143,6 @@ type cuenta struct {
 	Usuario    string `json:"usuario"`
 	Contraseña string `json:"contraseña"`
 	Servicio   string `json:"servicio"`
-	//Clave string `json:"clave"`
-	//ID    string `json:"id"`
 }
 ```
 
@@ -158,6 +167,9 @@ type respuesta struct {
 }
 
 ```
+
+Para procesas la petición realizamos un switch para ver que tipo de petición es, comprobamos la cookie y realizamos el trabajo.
+
 ### Seguridad
 ### Bcrypt
 Hemos utilizado hash en concreto bcrypt para encriptar el nombre de usuario que utilizamos como nombre del archivo, para que no se conozca qué es de quien.
@@ -905,8 +917,10 @@ listaCorreoClave = append(listaCorreoClave, valor)
 
 	
 #### Conocimiento 0
-El servidor no tiene capacidad de cifrar el usuario ni su nombre ni nada del cuerpo solo tiene la capacidad de comprobar el bcrypt. 
-Por otro lado, a la hora de leer y escribiri lo hace usando por encima AES.
+El servidor no tiene capacidad de encriptar el usuario ni su nombre ni nada del cuerpo solo tiene la capacidad de comprobar el bcrypt. 
+Por otro lado, a la hora de leer y escribir lo hace usando por encima AES.
+
+la idea es que con este método atacando al servidor no tenga muchas posibilidades el atacante de poder obtener los datos de una forma satisfactoria.
 
 ### Log de la aplicación Servidor
 Guardamos un log de las operaciones que ha realizado el servidor por si tenemos algun problema poder observar los pasos dados.
@@ -986,3 +1000,5 @@ sudo ./servidor
 
 ![Servidor Arrancado](./imagenes/servidor1.png)
 ![cliente Arrancado](./imagenes/cliente1.png)
+
+### Prueba de ejecución real
