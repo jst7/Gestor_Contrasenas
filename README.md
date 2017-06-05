@@ -1088,6 +1088,10 @@ Por la parte de cliente, una ejecución real:
 
 ### Trabajo con Git
 
+![Git y Github](./imagenes/github.png)
+
+En nuestra práctica, para tener un control de nuestro código, trabajar de forma distribuida y con ello hacer un trabajo más eficiente, hemos utilizado el sistema control de versiones GIT. Este sistema nos ha permitido hacer varias ramas y con ello hemos podido editar código sin afectar al original hasta que el alumno se cercioraba del correcto funcionamiento del mismo y hacia un "Pull Request". Para alojar nuestro código hemos usado la plataforma Github ya que nos facilitaba el uso de Markdown para hacer la memoria.
+
 ### Conclusión
 La seguridad es complicada y hemos podido ver el proceso de crear una aplicación potencialmente segura, con ella hemos observado los problemas que puede tener una aplicación en seguridad para aplicar doble autentificación, cifrado con conocimiento 0 o un hash. Para ello el uso de go ha sido de gran ayuda, ya que con pocas líneas podemos hacer un programa bastante potente.
 
