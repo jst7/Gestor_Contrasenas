@@ -1,6 +1,12 @@
 # Gestor de Contraseñas
 Práctica de SEGURIDAD DISEÑO SOFTWARE
 
+GitHub:
+
+https://github.com/jst7/Gestor_Contrasenas
+
+El documento se encuentra también en Markdown en el README.md.
+
 Integrantes:
 
 Jorge Segovia Tormo
